@@ -1,10 +1,12 @@
 package com.mt.notification;
 
+import static java.lang.System.lineSeparator;
+import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
-import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
 
 public class TelegramNotification implements Notification {
 
@@ -14,7 +16,7 @@ public class TelegramNotification implements Notification {
 		validateRecipient(recipient);
 
 		String otherAddress = recipient.getOtherAddress();
-		String botId = otherAddress.substring(0, otherAddress.lastIndexOf(":"));
+		String botId = otherAddress.substring(0, otherAddress.lastIndexOf(":")); 
 		String chatId = otherAddress.substring(otherAddress.lastIndexOf(":") + 1);
 		sendTelegramMessage(botId, chatId, formatMessage(message));
 	}
@@ -27,7 +29,10 @@ public class TelegramNotification implements Notification {
 			formattedMessage = "<b>" + subject + "</b>";
 		}
 		if (body != null) {
-			formattedMessage += System.lineSeparator() + body;
+			if (!body.isEmpty()) {
+				formattedMessage += lineSeparator();
+			}
+			formattedMessage += body;
 		}
 		return formattedMessage;
 	}
