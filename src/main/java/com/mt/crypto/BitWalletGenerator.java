@@ -1,99 +1,85 @@
 package com.mt.crypto;
 
-import java.security.GeneralSecurityException;
+import static java.lang.System.arraycopy;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
-import java.security.Security;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 /**
- * 1. creating a public key with ECDSA
- * 2. encrypting the key with SHA-256 and RIPEMD-160 
- * 3. calculating the checksum with double SHA-256
- * 4. encoding the key with Base58.
+ * This class is responsible for generating the valid Bitcoin wallet and provide
+ * access to all its keys even in a raw form.
  *
  * @author mkrajcovic
  */
 public class BitWalletGenerator implements CryptoAddressGenerator {
 
-	static {
-		Security.addProvider(new BouncyCastleProvider());
-	}
-
-	// TODO: split to smaller methods
-
+	/**
+	 * Generates KeyPair by applying ECDSA algorithm to the private key.
+	 * Here, the secp256k1 curve is used as by the Bitcoin protocol.
+	 *
+	 * @return KeyPair - holder containing public and private key
+	 */
 	@Override
-	public String getAddress(String publicKey) throws GeneralSecurityException {
-		// compress public key
-		byte[] pubBytes = new byte[publicKey.length() / 2];
-		for (int i = 0; i < publicKey.length() / 2; i += 2) {
-			pubBytes[i / 2] = (byte) ((Character.digit(publicKey.charAt(i), 16) << 4) + Character.digit(publicKey.charAt(i + 1), 16));
-		}
-
+	public KeyPair generateAsymetricKeyPair() throws NoSuchProviderException,
+													 NoSuchAlgorithmException,
+													 InvalidAlgorithmParameterException {
 		/*
-		 * What we need to do here is to apply SHA-256 to the public key, and
-		 * then apply RIPEMD-160 to the result. The order is important.
-		 */
-		MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-		byte[] s1 = sha256.digest(pubBytes);
-
-		MessageDigest ripeMD160 = MessageDigest.getInstance("RipeMD160", "BC");
-		byte[] r1 = ripeMD160.digest(s1);
-
-		byte[] r2 = new byte[r1.length + 1];
-		r2[0] = 0;
-		for (int i = 0; i < r1.length; i++) {
-			r2[i + 1] = r1[i];
-		}
-
-		/*
-		 * To calculate the checksum of the key, we need to apply SHA-256 twice
-		 * and then take first 4 bytes of the result.
-		 */
-		byte[] s2 = sha256.digest(r2);
-		byte[] s3 = sha256.digest(s2);
-		byte[] a1 = new byte[25];
-		for (int i = 0; i < r2.length; i++) {
-			a1[i] = r2[i];
-		}
-		for (int i = 0; i < 4; i++) {
-			a1[21 + i] = s3[i];
-		}
-
-		/*
-		 * A compressed Bitcoin address is Main net encrypted public key +
-		 * checksum
-		 */
-		return Base58.encode(a1);
-	}
-
-	@Override
-	public KeyPair generateAsymetricKeyPair() throws GeneralSecurityException {
-		/*
-		 * The first thing we need to do is to apply the ECDSA or Elliptic Curve
-		 * Digital Signature Algorithm to our private key. An elliptic curve is
-		 * a curve defined by the equation y² = x³ + ax + b with a chosen a and
-		 * b. There is a whole family of such curves that are widely known and
-		 * used. Bitcoin uses the secp256k1 curve.
+		 * An elliptic curve is a curve defined by the equation y² = x³ + ax + b
+		 * with a chosen a and b.
 		 *
 		 * By applying the ECDSA to the private key, we get a 64-byte integer.
 		 * This consists of two 32-byte integers that represent the X and Y of
 		 * the point on the elliptic curve, concatenated together.
 		 */
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", "BC"); // eliptic curve algorithm
+		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", "BC");
 		ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256k1");
 		keyGen.initialize(ecSpec);
 
 		return keyGen.generateKeyPair();
 	}
 
-	private String adjustTo64(String key) {
+	/**
+	 * Retrieves the generated public key from the KeyPair holder applying
+	 * concatenation of X and Y EC coordinates together with 0x04 prepended to
+	 * represent a full valid Bitcoin public key.
+	 *
+	 * @return non compressed public key
+	 * @throws InvalidKeyException
+	 *             when a key with insufficient length gets produced
+	 */
+	@Override
+	public String getPublicKey(KeyPair keyPair) throws InvalidKeyException {
+		ECPublicKey publicKey = (ECPublicKey) keyPair.getPublic();
+		ECPoint ecPoint = publicKey.getW();
+		// FIXME: this coordinate sometimes results in 61/60 digit number which is not valid
+		String x = adjustTo64(ecPoint.getAffineX().toString(16));
+		String y = adjustTo64(ecPoint.getAffineY().toString(16));
+		return "04" + x + y;
+	}
+
+	/**
+	 * Retrieves the generated private key from the KeyPair holder.
+	 *
+	 * @throws InvalidKeyException
+	 *             when a key with insufficient length gets produced
+	 */
+	@Override
+	public String getPrivateKey(KeyPair keyPair) throws InvalidKeyException {
+		ECPrivateKey privateKey = (ECPrivateKey) keyPair.getPrivate();
+		return adjustTo64(privateKey.getS().toString(16));
+	}
+
+	private String adjustTo64(String key) throws InvalidKeyException {
 		switch(key.length()) {
 		case 62:
 			return "00" + key;
@@ -102,33 +88,41 @@ public class BitWalletGenerator implements CryptoAddressGenerator {
 		case 64:
 			return key;
 		default :
-			// TODO: replace by more specific exception so it can be handled above meaningfully
-			throw new IllegalArgumentException("Invalid key: " + key + " length: " + key.length() + " (expected one of 62, 63, 64)");
+			throw new InvalidKeyException("Invalid key: " + key + " length: " + key.length() + " (expected one of 62, 63, 64)");
 		}
 	}
 
-	@Override
-	public String getPrivateKey(KeyPair keyPair) {
-		return adjustTo64(((ECPrivateKey)keyPair.getPrivate()).getS().toString(16));
-	}
-
 	/**
-	 * @return long public key
+	 * Generates a valid Bitcoin wallet address from the given public key by
+	 * following these steps:<br>
+	 * <ul>
+	 * 	<li>apply SHA-256 to the public key</li>
+	 * 	<li>apply RIPEMD-160 on the hashed public key</li>
+	 * 	<li>add version byte of 0x00 at the beginning of the hash</li>
+	 * 	<li>apply SHA-256 twice on the result of the previous operation</li>
+	 * 	<li>add first 4 bytes of the second hashing at the end of the RIPEMD-160 hash</li>
+	 * 	<li>apply Base58 on the resulting 25-byte address</li>
+	 * </ul>
 	 */
 	@Override
-	public String getPublicKey(KeyPair keyPair) throws GeneralSecurityException {
-		/*
-		 * Once we’re done with the ECDSA, all we need to do is to add the bytes
-		 * 0x04 at the start of our public key. The result is a full Bitcoin
-		 * public key.
-		 */
-		ECPublicKey publicKey = (ECPublicKey) keyPair.getPublic();
-		ECPoint ecPoint = publicKey.getW();
-		String x = adjustTo64(ecPoint.getAffineX().toString(16));
-		// FIXME: this Y coordinate sometimes results in 61 digit number which is not valid
-		// internally it is stored fine, but fetching it produces wrong output
-		String y = adjustTo64(ecPoint.getAffineY().toString(16));
-		return "04" + x + y;
+	public String getAddress(String publicKey) throws NoSuchProviderException, NoSuchAlgorithmException {
+		MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+		byte[] shaPubKey = sha256.digest(publicKey.getBytes(UTF_8));
+
+		MessageDigest ripeMD160 = MessageDigest.getInstance("RipeMD160", "BC");
+		byte[] ripeMDPubKey = ripeMD160.digest(shaPubKey);
+
+		byte[] ripeMDFinal = new byte[ripeMDPubKey.length + 1];
+		ripeMDFinal[0] = 0;
+		arraycopy(ripeMDPubKey, 0, ripeMDFinal, 1, ripeMDPubKey.length);
+
+		// 4 bytes appended is the checksum
+		byte[] shaFinal = sha256.digest(sha256.digest(ripeMDFinal));
+		byte[] address = new byte[25];
+		arraycopy(ripeMDFinal, 0, address, 0, 21);
+		arraycopy(shaFinal, 0, address, 21, 4);
+
+		return Base58.encode(address);
 	}
 
 }

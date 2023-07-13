@@ -10,8 +10,8 @@ public interface CryptoAddressGenerator extends AsymetricKeyGenerator {
 
 	/**
 	 *
-	 * @param publicKey - which to compute crypto address from
-	 * @return address as string
+	 * @param publicKey - which to compute crypto wallet address from
+	 * @return wallet address
 	 */
 	public String getAddress(String publicKey) throws GeneralSecurityException;
 

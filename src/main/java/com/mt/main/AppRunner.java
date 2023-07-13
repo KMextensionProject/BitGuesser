@@ -6,6 +6,9 @@ import static java.lang.System.getenv;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
+import java.security.Security;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.mt.crypto.BitWalletGenerator;
 import com.mt.crypto.CryptoAddressGenerator;
@@ -16,14 +19,21 @@ import com.mt.notification.TelegramNotification;
 
 public class AppRunner {
 
-	public static void main(String[] args) throws Exception {
-		getRuntime().addShutdownHook(new Thread(AppRunner::notifyOnShutdown));
+	private static final String NOTIFICATION_ADDRESS = getenv("telegram_recipient");
 
-		testBitGeneration();
-		testTelegramNotification();
+	static {
+		Security.addProvider(new BouncyCastleProvider());
 	}
 
-	private static void testBitGeneration() throws GeneralSecurityException {
+	public static void main(String[] args) throws Exception {
+		getRuntime().addShutdownHook(new Thread(AppRunner::testTelegramNotification));
+		testBitWalletGeneration();
+
+		// validate with:
+//		https://blockchain.info/balance?active=
+	}
+
+	private static void testBitWalletGeneration() throws GeneralSecurityException {
 		CryptoAddressGenerator btcGen = new BitWalletGenerator();
 		KeyPair keyPair = btcGen.generateAsymetricKeyPair();
 		String publicKey = btcGen.getPublicKey(keyPair);
@@ -34,16 +44,24 @@ public class AppRunner {
 		System.out.println("private key: " + privateKey);
 	}
 
-	private static void testTelegramNotification() throws IOException {
+	private static void testTelegramNotification() {
 		Message message = new Message("BitGuesser", "This is a test notification");
-		Recipient recipient = new Recipient().withOtherAddress(getenv(("telegram_recipient")));
+		Recipient recipient = new Recipient().withOtherAddress(NOTIFICATION_ADDRESS);
 
 		Notification telegram = new TelegramNotification();
-		telegram.sendNotification(message, recipient);
+		try {
+			telegram.sendNotification(message, recipient);
+			System.out.println("Telegram notification has been sent");
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
 	}
 
-	private static final void notifyOnShutdown() {
-		System.out.println("Notification before shutdown");
-	}
+//	[0, 46, 77, 17, -102, 63, 44, 38, 103, -23, 38, -126, -82, -109, 88, -108, 72, 7, 110, -127, -113]
+//	[0, 46, 77, 17, -102, 63, 44, 38, 103, -23, 38, -126, -82, -109, 88, -108, 72, 7, 110, -127, -113]
 
+//	[0, 64, 60, -27, 124, 24, -52, 62, 4, -79, -94, -124, -66, -29, 124, 4, 19, -8, 65, -124, -63, 0, 0, 0, 0]
+//	[0, 64, 60, -27, 124, 24, -52, 62, 4, -79, -94, -124, -66, -29, 124, 4, 19, -8, 65, -124, -63, 0, 0, 0, 0]
+//	[0, 64, 60, -27, 124, 24, -52, 62, 4, -79, -94, -124, -66, -29, 124, 4, 19, -8, 65, -124, -63, -51, -39, 78, -127]
+//	[0, 64, 60, -27, 124, 24, -52, 62, 4, -79, -94, -124, -66, -29, 124, 4, 19, -8, 65, -124, -63, -51, -39, 78, -127]	
 }
