@@ -17,11 +17,24 @@ import java.security.spec.ECPoint;
 
 /**
  * This class is responsible for generating the valid Bitcoin wallet and provide
- * access to all its keys even in a raw form.
+ * access to all its keys even in a raw form directly through KeyPair holder object.<br>
  *
  * @author mkrajcovic
  */
-public class BitWalletGenerator implements CryptoAddressGenerator {
+public final class BtcAddressGenerator implements CryptoAddressGenerator {
+
+	private static final BtcAddressGenerator INSTANCE = new BtcAddressGenerator();
+
+	private BtcAddressGenerator() {
+		// intentionally empty
+	}
+
+	/**
+	 * @return the singleton instance of this class
+	 */
+	public static final BtcAddressGenerator getInstance() {
+		return INSTANCE;
+	}
 
 	/**
 	 * Generates KeyPair by applying ECDSA algorithm to the private key.

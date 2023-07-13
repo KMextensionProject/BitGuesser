@@ -1,6 +1,7 @@
 package com.mt.crypto;
 
 import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 
 /**
@@ -23,7 +24,7 @@ public interface AsymetricKeyGenerator {
 	 * @return public key
 	 * @throws GeneralSecurityException
 	 */
-	public String getPublicKey(KeyPair keyPair) throws GeneralSecurityException;
+	public String getPublicKey(KeyPair keyPair) throws InvalidKeyException;
 
 	/**
 	 *
@@ -32,6 +33,6 @@ public interface AsymetricKeyGenerator {
 	 * @return private key
 	 * @throws GeneralSecurityException
 	 */
-	public String getPrivateKey(KeyPair keyPair) throws GeneralSecurityException;
+	public String getPrivateKey(KeyPair keyPair) throws InvalidKeyException;
 
 }
