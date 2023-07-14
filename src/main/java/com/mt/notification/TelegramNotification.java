@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
@@ -42,8 +43,10 @@ public class TelegramNotification implements Notification {
 		String encodedMessage = URLEncoder.encode(message);
 		String url = "https://api.telegram.org/bot" + botId + "/sendMessage?chat_id=" + chatId + "&text=" + encodedMessage + "&parse_mode=html";
 		try {
-			// I do not need to read the response for now
-			new URL(url).openConnection().getContentLength();
+			HttpURLConnection httpRequest = (HttpURLConnection) new URL(url).openConnection();
+			// for now, we do not need to capture the response
+			httpRequest.getContentLength();
+			httpRequest.disconnect();
 		} catch (IOException ioex) {
 			// quietly continue, no need to stop the application
 			ioex.printStackTrace();
