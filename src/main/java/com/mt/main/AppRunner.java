@@ -4,7 +4,6 @@ import static java.lang.Runtime.getRuntime;
 import static java.lang.System.getenv;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -31,8 +30,8 @@ public class AppRunner {
 //		https://blockchain.info/balance?active=
 	}
 
-	private static void testBitWalletGeneration() throws GeneralSecurityException {
-		Wallet wallet = Wallet.createBitcoinWallet();
+	private static void testBitWalletGeneration() throws Exception {
+		Wallet wallet = Wallet.createBitcoinLegacyWallet();
 		System.out.println(wallet);
 	}
 

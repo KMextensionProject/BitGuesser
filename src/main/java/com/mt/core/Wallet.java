@@ -4,7 +4,7 @@ import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 
-import com.mt.crypto.BtcAddressGenerator;
+import com.mt.crypto.BtcLegacyAddressGenerator;
 import com.mt.crypto.CryptoAddressGenerator;
 
 /**
@@ -27,10 +27,10 @@ public final class Wallet {
 	 * The generation of an invalid key is handled by iterative recreation
 	 * of the wallet.
 	 *
-	 * @return a valid Bitcoin wallet
+	 * @return a valid Bitcoin legacy wallet (from before Segwit update)
 	 */
-	public static Wallet createBitcoinWallet() {
-		return new Wallet(BtcAddressGenerator.getInstance());
+	public static Wallet createBitcoinLegacyWallet() {
+		return new Wallet(BtcLegacyAddressGenerator.getInstance());
 	}
 
 	private Wallet(CryptoAddressGenerator cryptoWalletGenerator) {

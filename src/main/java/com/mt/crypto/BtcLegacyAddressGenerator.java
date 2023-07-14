@@ -16,23 +16,24 @@ import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
 
 /**
- * This class is responsible for generating the valid Bitcoin wallet and provide
- * access to all its keys even in a raw form directly through KeyPair holder object.<br>
+ * This class is responsible for generating a valid Bitcoin wallet compatible
+ * before the Segwit update and provide access to all its keys even in a raw
+ * form directly through KeyPair holder object.<br>
  *
  * @author mkrajcovic
  */
-public final class BtcAddressGenerator implements CryptoAddressGenerator {
+public final class BtcLegacyAddressGenerator implements CryptoAddressGenerator {
 
-	private static final BtcAddressGenerator INSTANCE = new BtcAddressGenerator();
+	private static final BtcLegacyAddressGenerator INSTANCE = new BtcLegacyAddressGenerator();
 
-	private BtcAddressGenerator() {
+	private BtcLegacyAddressGenerator() {
 		// intentionally empty
 	}
 
 	/**
 	 * @return the singleton instance of this class
 	 */
-	public static final BtcAddressGenerator getInstance() {
+	public static final BtcLegacyAddressGenerator getInstance() {
 		return INSTANCE;
 	}
 
