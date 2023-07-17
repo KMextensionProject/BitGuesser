@@ -24,7 +24,7 @@ public abstract class Wallet {
 	 * The generation of an invalid key is handled by iterative recreation
 	 * of the wallet.
 	 *
-	 * @return a valid Bitcoin legacy wallet (from before Segwit update)
+	 * @return a valid Wallet
 	 */
 	protected Wallet(CryptoAddressGenerator cryptoWalletGenerator) {
 		handleWalletCreation(cryptoWalletGenerator);
@@ -37,7 +37,7 @@ public abstract class Wallet {
 				KeyPair keyPair = walletGenerator.generateAsymetricKeyPair();
 				this.privateKey = walletGenerator.getPrivateKey(keyPair);
 				this.publicKey = walletGenerator.getPublicKey(keyPair);
-				this.address = walletGenerator.getAddress(publicKey); // bech32
+				this.address = walletGenerator.getAddress(publicKey);
 				createNew = false;
 			} catch (InvalidKeyException invalidKeyError) {
 				// recreate on invalid key generation
@@ -73,7 +73,8 @@ public abstract class Wallet {
 
 	@Override
 	public String toString() {
-		return "Wallet [address=" + address 
+		return "Wallet [address=" + address
+			+ ", publicKey=" + publicKey
 			+ ", privateKey=" + privateKey + "]";
 	}
 
