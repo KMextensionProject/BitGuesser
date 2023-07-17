@@ -9,7 +9,7 @@ public enum AddressType {
 	/**
 	 * Describes the Bitcoin Legacy address format starting with '1'
 	 */
-	P2PKH(new BtcLegacyAddressGenerator()),
+	P2PKH(BtcLegacyAddressGenerator.getInstance()),
 	
 	/**
 	 * Describes the Bitcoin SegWit address format starting with '3'
@@ -19,7 +19,7 @@ public enum AddressType {
 	/**
 	 * Describes the Bitcoin Native SegWit address format starting with 'bc1'
 	 */
-	Bech32(new BtcNativeSegWitAddressGenerator());
+	Bech32(BtcNativeSegWitAddressGenerator.getInstance());
 
 	private CryptoAddressGenerator generator;
 

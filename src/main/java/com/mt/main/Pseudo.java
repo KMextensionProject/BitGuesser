@@ -28,8 +28,7 @@ public class Pseudo {
 		while (true) {
 
 			while (wallets.size() != MAX_BATCH_INSERT_SIZE) {
-				Wallet wallet = new BitcoinWallet();
-				wallets.add(wallet);
+				wallets.add(new BitcoinWallet());
 			}
 
 			// if we have enough for batch verification
