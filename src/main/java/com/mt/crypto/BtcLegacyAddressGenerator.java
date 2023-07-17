@@ -22,20 +22,7 @@ import java.security.spec.ECPoint;
  *
  * @author mkrajcovic
  */
-public final class BtcLegacyAddressGenerator implements CryptoAddressGenerator {
-
-	private static final BtcLegacyAddressGenerator INSTANCE = new BtcLegacyAddressGenerator();
-
-	private BtcLegacyAddressGenerator() {
-		// intentionally empty
-	}
-
-	/**
-	 * @return the singleton instance of this class
-	 */
-	public static final BtcLegacyAddressGenerator getInstance() {
-		return INSTANCE;
-	}
+public class BtcLegacyAddressGenerator implements CryptoAddressGenerator {
 
 	/**
 	 * Generates KeyPair by applying ECDSA algorithm to the private key.

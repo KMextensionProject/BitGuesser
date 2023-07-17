@@ -3,25 +3,22 @@ package com.mt.core;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.util.List;
 
-import com.mt.crypto.BtcLegacyAddressGenerator;
 import com.mt.crypto.CryptoAddressGenerator;
 
 /**
  * This class represents a simple holder which provides convenient way to
  * generate and access Wallet information without forcing a client to use
- * generators by hand or handle checked exceptions.<br>
- * <p>
- * This class works as a factory for various types of wallets based on the
- * underlying type of the CryptoAddressGenerator.
+ * generators by hand or handle checked exceptions.
  *
  * @author mkrajcovic
  */
-public final class Wallet {
+public abstract class Wallet {
 
-	private String privateKey;
-	private String publicKey;
-	private String address;
+	protected String privateKey;
+	protected String publicKey;
+	protected String address;
 
 	/**
 	 * The generation of an invalid key is handled by iterative recreation
@@ -29,11 +26,7 @@ public final class Wallet {
 	 *
 	 * @return a valid Bitcoin legacy wallet (from before Segwit update)
 	 */
-	public static Wallet createBitcoinLegacyWallet() {
-		return new Wallet(BtcLegacyAddressGenerator.getInstance());
-	}
-
-	private Wallet(CryptoAddressGenerator cryptoWalletGenerator) {
+	protected Wallet(CryptoAddressGenerator cryptoWalletGenerator) {
 		handleWalletCreation(cryptoWalletGenerator);
 	}
 
@@ -44,7 +37,7 @@ public final class Wallet {
 				KeyPair keyPair = walletGenerator.generateAsymetricKeyPair();
 				this.privateKey = walletGenerator.getPrivateKey(keyPair);
 				this.publicKey = walletGenerator.getPublicKey(keyPair);
-				this.address = walletGenerator.getAddress(publicKey);
+				this.address = walletGenerator.getAddress(publicKey); // bech32
 				createNew = false;
 			} catch (InvalidKeyException invalidKeyError) {
 				// recreate on invalid key generation
@@ -64,6 +57,19 @@ public final class Wallet {
 	public String getAddress() {
 		return this.address;
 	}
+
+	/**
+	 * @param addressType
+	 *            - one of supported address types
+	 * @return the address computed by the underlying address generator of the
+	 *         given type
+	 */
+	public abstract String getAddress(AddressType addressType);
+
+	/**
+	 * @return the list of supported address types
+	 */
+	public abstract List<AddressType> getSupportedAddressTypes();
 
 	@Override
 	public String toString() {

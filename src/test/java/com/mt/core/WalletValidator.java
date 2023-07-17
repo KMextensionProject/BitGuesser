@@ -16,7 +16,11 @@ class WalletValidator {
 	private static final String BLOCKCHAIN_WALLET_INFO_URL = "https://blockchain.info/balance?active=";
 
 	public static boolean isValid(Wallet wallet) throws IOException {
-		String url = BLOCKCHAIN_WALLET_INFO_URL + wallet.getAddress();
+		return isValid(wallet.getAddress());
+	}
+
+	public static boolean isValid(String address) throws IOException {
+		String url = BLOCKCHAIN_WALLET_INFO_URL + address;
 		HttpURLConnection httpCon = null;
 		try {
 			httpCon = (HttpURLConnection) new URL(url).openConnection();

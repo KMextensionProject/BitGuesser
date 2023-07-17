@@ -21,7 +21,7 @@ public class WalletTest {
 	@BeforeAll
 	void createWallet() {
 		Security.addProvider(new BouncyCastleProvider());
-		wallet = Wallet.createBitcoinLegacyWallet();
+		wallet = new BitcoinWallet();
 	}
 
 	@Test
@@ -45,13 +45,19 @@ public class WalletTest {
 
 	@Test
 	void walletActivenessTest() {
+		assertTrue(isAddressValid(wallet.getAddress()));
+//		assertTrue(isAddressValid(wallet.getAddress(AddressType.P2SH)));
+//		assertTrue(isAddressValid(wallet.getAddress(AddressType.Bech32)));
+	}
+
+	private static boolean isAddressValid(String address) {
 		boolean isValid;
 		try {
-			isValid = WalletValidator.isValid(wallet);
+			isValid = WalletValidator.isValid(address);
 		} catch (IOException ioex) {
 			isValid = false;
 		}
-		assertTrue(isValid);
+		return isValid;
 	}
 
 	@AfterAll

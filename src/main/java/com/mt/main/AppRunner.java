@@ -8,6 +8,8 @@ import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import com.mt.core.AddressType;
+import com.mt.core.BitcoinWallet;
 import com.mt.core.Wallet;
 import com.mt.notification.Message;
 import com.mt.notification.Notification;
@@ -31,8 +33,14 @@ public class AppRunner {
 	}
 
 	private static void testBitWalletGeneration() throws Exception {
-		Wallet wallet = Wallet.createBitcoinLegacyWallet();
-		System.out.println(wallet);
+		Wallet wallet = new BitcoinWallet();
+
+		System.out.println(wallet.getAddress()); // default legacy address
+		System.out.println(wallet.getAddress(AddressType.P2PKH)); // default legacy address
+//		System.out.println(wallet.getAddress(AddressType.Bech32)); // native segwit address
+		System.out.println(wallet.getPublicKey());
+		System.out.println(wallet.getPrivateKey());
+
 	}
 
 	private static void testTelegramNotification() {
@@ -47,12 +55,4 @@ public class AppRunner {
 			ioex.printStackTrace();
 		}
 	}
-
-//	[0, 46, 77, 17, -102, 63, 44, 38, 103, -23, 38, -126, -82, -109, 88, -108, 72, 7, 110, -127, -113]
-//	[0, 46, 77, 17, -102, 63, 44, 38, 103, -23, 38, -126, -82, -109, 88, -108, 72, 7, 110, -127, -113]
-
-//	[0, 64, 60, -27, 124, 24, -52, 62, 4, -79, -94, -124, -66, -29, 124, 4, 19, -8, 65, -124, -63, 0, 0, 0, 0]
-//	[0, 64, 60, -27, 124, 24, -52, 62, 4, -79, -94, -124, -66, -29, 124, 4, 19, -8, 65, -124, -63, 0, 0, 0, 0]
-//	[0, 64, 60, -27, 124, 24, -52, 62, 4, -79, -94, -124, -66, -29, 124, 4, 19, -8, 65, -124, -63, -51, -39, 78, -127]
-//	[0, 64, 60, -27, 124, 24, -52, 62, 4, -79, -94, -124, -66, -29, 124, 4, 19, -8, 65, -124, -63, -51, -39, 78, -127]
 }
