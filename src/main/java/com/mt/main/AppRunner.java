@@ -37,10 +37,9 @@ public class AppRunner {
 
 		System.out.println(wallet.getAddress()); // default legacy address
 		System.out.println(wallet.getAddress(AddressType.P2PKH)); // default legacy address
-//		System.out.println(wallet.getAddress(AddressType.Bech32)); // native segwit address
+		System.out.println(wallet.getAddress(AddressType.Bech32)); // native segwit address
 		System.out.println(wallet.getPublicKey());
 		System.out.println(wallet.getPrivateKey());
-
 	}
 
 	private static void testTelegramNotification() {
