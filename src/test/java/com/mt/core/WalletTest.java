@@ -1,10 +1,12 @@
 package com.mt.core;
 
+import static com.mt.core.AddressType.Bech32;
+import static com.mt.core.AddressType.P2PKH;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.security.Security;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterAll;
@@ -27,27 +29,30 @@ public class WalletTest {
 	@Test
 	void creationTest() {
 		assertNotNull(wallet, "wallet cannot be null");
-		assertNotNull(wallet.getAddress(), "address cannot be null");
+		assertNotNull(wallet.getAddress(P2PKH), "legacy address cannot be null");
+		assertNotNull(wallet.getAddress(Bech32), "native SegWit address cannot be null");
 		assertNotNull(wallet.getPrivateKey(), "private key cannot be null");
 		assertNotNull(wallet.getPublicKey(), "public key cannot be null");
 	}
 
 	@Test
 	void integrityTest() {
-		int addressLength = wallet.getAddress().length();
+		int nativeSegWitAddressLength = wallet.getAddress(Bech32).length();
+		int legacyAddressLength = wallet.getAddress().length();
 		int privateLength = wallet.getPrivateKey().length();
 		int publicLength = wallet.getPublicKey().length();
 
-		assertTrue(addressLength >= 25 && addressLength <= 35);
+		assertTrue(nativeSegWitAddressLength == 42 || nativeSegWitAddressLength == 62);
+		assertTrue(legacyAddressLength >= 25 && legacyAddressLength <= 35);
 		assertTrue(privateLength == 64);
 		assertTrue(publicLength >= 68 && publicLength <= 130);
 	}
 
 	@Test
 	void walletActivenessTest() {
-		assertTrue(isAddressValid(wallet.getAddress()));
+		assertTrue(isAddressValid(wallet.getAddress(P2PKH)));
+		assertTrue(isAddressValid(wallet.getAddress(Bech32)));
 //		assertTrue(isAddressValid(wallet.getAddress(AddressType.P2SH)));
-//		assertTrue(isAddressValid(wallet.getAddress(AddressType.Bech32)));
 	}
 
 	private static boolean isAddressValid(String address) {
@@ -64,6 +69,7 @@ public class WalletTest {
 	void logValues() {
 		// neberem nic na lahku vahu :D
 		System.out.println("tested address: " + wallet.getAddress());
+		System.out.println("tested address: " + wallet.getAddress(Bech32));
 		System.out.println("tested private key: " + wallet.getPrivateKey());
 	}
 }
