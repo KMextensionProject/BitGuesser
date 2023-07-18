@@ -22,6 +22,7 @@ import org.bouncycastle.util.encoders.Hex;
  */
 public final class BtcNativeSegWitAddressGenerator implements CryptoAddressGenerator {
 
+	// kept for delegating on private and public key generation since these processes are same
 	private static CryptoAddressGenerator legacyGenerator = BtcLegacyAddressGenerator.getInstance();
 
 	private static final BtcNativeSegWitAddressGenerator INSTANCE = new BtcNativeSegWitAddressGenerator();

@@ -93,6 +93,7 @@ public final class BtcLegacyAddressGenerator implements CryptoAddressGenerator {
 		return adjustTo64(privateKey.getS().toString(16));
 	}
 
+	// TODO: what if we left pad the generated key with zeros even when they are below 62? 
 	private String adjustTo64(String key) throws InvalidKeyException {
 		switch(key.length()) {
 		case 62:
