@@ -68,8 +68,8 @@ public class WalletTest {
 	@AfterAll
 	void logValues() {
 		// neberem nic na lahku vahu :D
-		System.out.println("tested address: " + wallet.getAddress());
-		System.out.println("tested address: " + wallet.getAddress(Bech32));
-		System.out.println("tested private key: " + wallet.getPrivateKey());
+		System.out.println("[DEBUG] legacy address: " + wallet.getAddress());
+		System.out.println("[DEBUG] bech32 address: " + wallet.getAddress(Bech32));
+		System.out.println("[DEBUG] private key: " + wallet.getPrivateKey());
 	}
 }
