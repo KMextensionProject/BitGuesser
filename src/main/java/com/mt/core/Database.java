@@ -169,7 +169,7 @@ public class Database {
 		for (int i = 0; i < howMany; i++) {
 			sb.append(what).append(delimiter);
 		}
-		return sb.deleteCharAt(howMany - 1).toString();
+		return sb.deleteCharAt(sb.length() - 1).toString();
 	}
 
 	private void insertPrivateKeysForAddresses(PreparedStatement pstmt, List<Wallet> wallets) throws SQLException {
