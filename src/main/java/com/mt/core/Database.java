@@ -131,7 +131,7 @@ public class Database {
 	private String createParameterizedQuery(int placeholders) {
 		return "SELECT " + addressField
 			+ " FROM " + schema + "." + table
-			+ " WHERE " + privateKeyField + " IS NOT NULL" 
+			+ " WHERE " + privateKeyField + " IS NULL"
 			+ " AND " + addressField + " IN ("
 			+ repeat("?", placeholders, ",") + ");";
 	}
