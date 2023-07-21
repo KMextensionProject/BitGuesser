@@ -1,6 +1,9 @@
 package com.mt.config;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -15,8 +18,19 @@ public class PropertiesFileConfiguration implements ApplicationConfiguration {
         config = new Properties();
         try {
             config.load(this.getClass().getClassLoader().getResourceAsStream(path));
-        } catch (IOException | NullPointerException e) {
-            throw new ExceptionInInitializerError(e);
+            // null empty values example:
+            // db.url=
+            List<Object> toRemove = new ArrayList<>();
+            for (Map.Entry<Object, Object> entry : config.entrySet()) {
+            	if (String.valueOf(entry.getValue()).trim().isEmpty()) {
+            		toRemove.add(entry.getKey());
+            	}
+            }
+            toRemove.forEach(config::remove);
+        } catch (NullPointerException e) {
+            throw new ExceptionInInitializerError("File " + path + " could not be found");
+        } catch (IOException ioex) {
+        	throw new ExceptionInInitializerError(ioex);
         }
     }
 
