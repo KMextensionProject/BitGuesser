@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -10,13 +11,22 @@
 	<name>BitGuesser</name>
 	<url>http://maven.apache.org</url>
 
+	<developers>
+		<developer>
+			<name>Martin Krajcovic</name>
+			<email>mar.krajc@gmail.com</email>
+		</developer>
+	</developers>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
+		<bouncyCastle.version>1.46</bouncyCastle.version>
 		<junit.version>5.10.0-M1</junit.version>
 		<surfire.version>3.1.2</surfire.version>
+		<postgresql.version>42.6.0</postgresql.version>
 	</properties>
 
 	<dependencies>
@@ -25,7 +35,7 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk16</artifactId>
-			<version>1.46</version>
+			<version>${bouncyCastle.version}</version>
 		</dependency>
 
 		<!-- JUnit testing -->
@@ -41,6 +51,13 @@
 			<artifactId>junit-jupiter-engine</artifactId>
 			<version>${junit.version}</version>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- Database -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${postgresql.version}</version>
 		</dependency>
 
 	</dependencies>
