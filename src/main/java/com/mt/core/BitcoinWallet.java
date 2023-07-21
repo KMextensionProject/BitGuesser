@@ -45,4 +45,12 @@ public class BitcoinWallet extends Wallet {
 		return SUPPORTED_ADDRESS_TYPES;
 	}
 
+	@Override
+	public String toString() {
+		return "BitcoinWallet [bech32Address=" + bech32Address 
+			+ ", privateKey=" + privateKey
+//			+ ", publicKey=" + publicKey
+			+ ", address=" + address + "]";
+	}
+
 }
