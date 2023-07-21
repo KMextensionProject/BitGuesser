@@ -1,6 +1,16 @@
 package com.mt.core;
 
-import static java.lang.System.getenv;
+import static com.mt.config.ConfigurationKey.DATABASE_AUTOSAVE_GENERATED_KEYS;
+import static com.mt.config.ConfigurationKey.DATABASE_PASSWORD;
+import static com.mt.config.ConfigurationKey.DATABASE_SCHEMA;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_ADDRESS;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_ADDRESS_FIELD;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_ADDRESS_PRIVATE_KEY_FIELD;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_AUTOSAVE;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_AUTOSAVE_ADDRESS_FIELD;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_AUTOSAVE_ADDRESS_PRIVATE_KEY_FIELD;
+import static com.mt.config.ConfigurationKey.DATABASE_URL;
+import static com.mt.config.ConfigurationKey.DATABASE_USER;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
@@ -11,6 +21,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.mt.config.ApplicationConfiguration;
 
 /**
  *
@@ -28,23 +40,31 @@ public class Database {
 	private final String addressField;
 	private final String privateKeyField;
 
-	// TODO: think about creation, and configuration of this object properties
-	// -> external configuration file / environment variables ?
-	public Database() {
-		url = requireNonNull(getenv("db_url"));
-		usr = requireNonNull(getenv("db_usr"));
-		pwd = requireNonNull(getenv("db_pwd"));
+	// TODO: incorporate these
+	private final boolean isAutosaveGeneratedAllowed;
+	private String autosaveTable;
+	private String autosaveAddressField;
+	private String autosaveAddressPrivateKeyField;
+
+	public Database(ApplicationConfiguration config) {
+		requireNonNull(config);
+
+		url = requireNonNull(config.get(DATABASE_URL));
+		usr = requireNonNull(config.get(DATABASE_USER));
+		pwd = requireNonNull(config.get(DATABASE_PASSWORD));
 
 		// this comes from the provided DDL script
-		schema = getEnvDefault("db_sch", "bitcoin");
-		table = getEnvDefault("db_table", "t_address");
-		addressField = getEnvDefault("db_table_address", "s_address");
-		privateKeyField = getEnvDefault("db_table_private_key", "s_private_key");
-	}
+		schema = config.get(DATABASE_SCHEMA, "bitcoin");
+		table = config.get(DATABASE_TABLE_ADDRESS, "t_address");
+		addressField = config.get(DATABASE_TABLE_ADDRESS_FIELD, "s_address");
+		privateKeyField = config.get(DATABASE_TABLE_ADDRESS_PRIVATE_KEY_FIELD, "s_private_key");
 
-	private String getEnvDefault(String envName, String defaultValue) {
-		String envValue = getenv(envName);
-		return envValue != null ? envValue : defaultValue;
+		isAutosaveGeneratedAllowed = Boolean.valueOf(config.get(DATABASE_AUTOSAVE_GENERATED_KEYS));
+		if (isAutosaveGeneratedAllowed) {
+			autosaveTable = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE));
+			autosaveAddressField = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE_ADDRESS_FIELD));
+			autosaveAddressPrivateKeyField = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE_ADDRESS_PRIVATE_KEY_FIELD));
+		}
 	}
 
 	/**
@@ -82,14 +102,6 @@ public class Database {
 		} catch (SQLException sqle) {
 			throw new RuntimeException("Error calling " + update + " for wallets: " + wallets);
 		}
-	}
-
-	// all unmatched wallets, so we do not loose them -> batch insert
-	/**
-	 * 
-	 */
-	public void saveWallets() {
-		
 	}
 
 	private Connection getConnection() {
