@@ -3,7 +3,7 @@ package com.mt.core;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.util.List;
+import java.util.Set;
 
 import com.mt.crypto.CryptoAddressGenerator;
 
@@ -67,9 +67,9 @@ public abstract class Wallet {
 	public abstract String getAddress(AddressType addressType);
 
 	/**
-	 * @return the list of supported address types
+	 * @return the set of supported address types
 	 */
-	public abstract List<AddressType> getSupportedAddressTypes();
+	public abstract Set<AddressType> getSupportedAddressTypes();
 
 	@Override
 	public String toString() {
