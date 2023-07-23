@@ -25,8 +25,14 @@ import java.util.List;
 import com.mt.config.ApplicationConfiguration;
 
 /**
- * This class represents the database communication interface for Wallet
- * objects.
+ * This class represents a database communication interface for Wallet
+ * objects.<p>
+ * Its main purpose is to support the following goals:
+ * <ul>
+ * <li>finding the wallets matched on addresses in the configured table</li>
+ * <li>updating the configured table by assigning the private key to the found addresses</li>
+ * <li>saving the generated (usually searched) wallets into a separate table if configured</li>
+ * </ul>
  *
  * @author mkrajcovic
  */
@@ -88,6 +94,10 @@ public class Database implements AutoCloseable {
 
 	/**
 	 * Queries the database for a match on provided wallet addresses.
+	 * <p>
+	 * If the automatic save of generated (searched) wallets is configured, this
+	 * method will perform this additional operation.
+	 * </p>
 	 *
 	 * @param wallets - to find a match for
 	 * @return list of wallets which the match was found for
@@ -151,7 +161,8 @@ public class Database implements AutoCloseable {
 
 	private void saveGenerated(List<Wallet> wallets) {
 		String insert = createParameterizedInsert(2);
-		System.out.println("Calling " + insert);
+		System.out.println("Calling " + insert + " for " + wallets.size() + " wallets");
+
 		try (PreparedStatement pstmt = getConnection().prepareStatement(insert)) {
 			// do this for all the address types?
 			// if so, make it configurable to choose between all address types
