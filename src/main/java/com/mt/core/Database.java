@@ -44,14 +44,17 @@ public class Database implements AutoCloseable {
 	private final String addressField;
 	private final String privateKeyField;
 
-	// TODO: incorporate these
+	// TODO: rename these and provide public method to do the insert?
+	// it would then do nothing if it was not set
+	// Pros of this solution is to clearly read it from bussiness code
 	private final boolean isAutosaveGeneratedAllowed;
 	private String autosaveTable;
 	private String autosaveAddressField;
-	private String autosaveAddressPrivateKeyField;
+	private String autosavePrivateKeyField;
 
 	public Database(ApplicationConfiguration config) {
 		requireNonNull(config);
+		recover = true;
 
 		url = requireNonNull(config.get(DATABASE_URL), "jdbc database URL configuration cannot be null");
 		usr = requireNonNull(config.get(DATABASE_USER), "database username configuration cannot be null");
@@ -67,8 +70,20 @@ public class Database implements AutoCloseable {
 		if (isAutosaveGeneratedAllowed) {
 			autosaveTable = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE));
 			autosaveAddressField = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE_ADDRESS_FIELD));
-			autosaveAddressPrivateKeyField = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE_ADDRESS_PRIVATE_KEY_FIELD));
+			autosavePrivateKeyField = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE_ADDRESS_PRIVATE_KEY_FIELD));
 		}
+	}
+
+	private Connection getConnection() {
+		try {
+			if (recover && (connection == null || connection.isClosed())) {
+				connection = DriverManager.getConnection(url, usr, pwd);
+				connection.setAutoCommit(true);
+			}
+		} catch (SQLException sqle) {
+			throw new IllegalStateException("Could not re-/connect to the database", sqle);
+		}
+		return connection;
 	}
 
 	/**
@@ -86,38 +101,12 @@ public class Database implements AutoCloseable {
 			List<String> foundAddresses = queryForAddresses(pstmt, addresses);
 			return retainMatchedWallets(wallets, foundAddresses);
 		} catch (SQLException sqle) {
-			throw new RuntimeException("Error calling " + query + " with params " + addresses);
-		}
-	}
-
-	/**
-	 * Performs insert of private keys to corresponding addresses stored already in
-	 * the database.
-	 *
-	 * @param wallets - of which the private keys should be inserted
-	 */
-	// TODO: return list of more readable errors for those records that fail to update ?
-	public void savePrivateKeys(List<Wallet> wallets) {
-		String update = createParameterizedUpdate(wallets.get(0).getSupportedAddressTypes().size());
-		System.out.println("Calling " + update);
-
-		try (PreparedStatement pstmt = getConnection().prepareStatement(update)) {
-			insertPrivateKeysForAddresses(pstmt, wallets);
-		} catch (SQLException sqle) {
-			throw new RuntimeException("Error calling " + update + " for wallets: " + wallets);
-		}
-	}
-
-	private Connection getConnection() {
-		try {
-			if (recover && (connection == null || connection.isClosed())) {
-				connection = DriverManager.getConnection(url, usr, pwd);
-				connection.setAutoCommit(true);
+			throw new RuntimeException("Error calling " + query + " with params " + addresses, sqle);
+		} finally {
+			if (isAutosaveGeneratedAllowed) {
+				saveGenerated(wallets);
 			}
-		} catch (SQLException sqle) {
-			throw new IllegalStateException("Could not re-/connect to the database", sqle);
 		}
-		return connection;
 	}
 
 	// works only for compatible addresses which share the same set of address types
@@ -158,6 +147,49 @@ public class Database implements AutoCloseable {
 			.stream()
 			.anyMatch(addType -> addresses.contains(wallet.getAddress(addType))))
 		.collect(toList());
+	}
+
+	private void saveGenerated(List<Wallet> wallets) {
+		String insert = createParameterizedInsert(2);
+		System.out.println("Calling " + insert);
+		try (PreparedStatement pstmt = getConnection().prepareStatement(insert)) {
+			// do this for all the address types?
+			// if so, make it configurable to choose between all address types
+			// or just the base one
+			for (Wallet wallet : wallets) {
+				pstmt.setString(1, wallet.getAddress());
+				pstmt.setString(2, wallet.getPrivateKey());
+				pstmt.addBatch();
+			}
+			pstmt.executeBatch();
+		} catch (SQLException sqle) {
+			throw new RuntimeException(insert, sqle);
+		}
+	}
+
+	private String createParameterizedInsert(int placeholders) {
+		// stick to the currently used schema
+		return "INSERT INTO " + schema + "." + autosaveTable 
+			+ "(" + autosaveAddressField + "," + autosavePrivateKeyField 
+			+ ") VALUES (" + repeat("?", placeholders, ",") + ");";
+	}
+
+	/**
+	 * Performs insert of private keys to corresponding addresses stored already in
+	 * the database.
+	 *
+	 * @param wallets - of which the private keys should be inserted
+	 */
+	// TODO: return list of more readable errors for those records that fail to update ?
+	public void savePrivateKeys(List<Wallet> wallets) {
+		String update = createParameterizedUpdate(wallets.get(0).getSupportedAddressTypes().size());
+		System.out.println("Calling " + update);
+
+		try (PreparedStatement pstmt = getConnection().prepareStatement(update)) {
+			insertPrivateKeysForAddresses(pstmt, wallets);
+		} catch (SQLException sqle) {
+			throw new RuntimeException("Error calling " + update + " for wallets: " + wallets);
+		}
 	}
 
 	private String createParameterizedUpdate(int placeholders) {
@@ -204,5 +236,20 @@ public class Database implements AutoCloseable {
 		} catch (SQLException sqle) {
 			// do nothing
 		}
+	}
+
+	/**
+	 * @return whether the close() on the underlying connection
+	 * 		   has been called or not.
+	 */
+	public boolean isConnectionActive() {
+		return recover;
+	}
+
+	/**
+	 * @return whether the automatic saving of generated wallets is set
+	 */
+	public boolean isAutosaveGeneratedAllowed() {
+		return isAutosaveGeneratedAllowed;
 	}
 }
