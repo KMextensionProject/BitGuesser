@@ -11,7 +11,7 @@ public enum ConfigurationKey implements ApplicationConfiguration.Key {
 	DATABASE_TABLE_ADDRESS_FIELD("db.table.address.addressField"),
 	DATABASE_TABLE_ADDRESS_PRIVATE_KEY_FIELD("db.table.address.privateKeyField"),
 
-	DATABASE_AUTOSAVE_GENERATED_KEYS("db.autosaveGenerated"),
+	DATABASE_AUTOSAVE_GENERATED("db.autosaveGenerated"),
 	DATABASE_TABLE_AUTOSAVE("db.table.autosave"),
 	DATABASE_TABLE_AUTOSAVE_ADDRESS_FIELD("db.table.autosave.addressField"),
 	DATABASE_TABLE_AUTOSAVE_ADDRESS_PRIVATE_KEY_FIELD("db.table.autosave.privateKeyField"),

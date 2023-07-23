@@ -1,6 +1,8 @@
 package com.mt.config;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +18,8 @@ public class PropertiesFileConfiguration implements ApplicationConfiguration {
 
 	public PropertiesFileConfiguration(String path) {
         config = new Properties();
-        try {
-            config.load(this.getClass().getClassLoader().getResourceAsStream(path));
+		try {
+			config.load(Files.newBufferedReader(Paths.get(path).toAbsolutePath()));
             // null empty values example:
             // db.url=
             List<Object> toRemove = new ArrayList<>();

@@ -1,6 +1,6 @@
 package com.mt.core;
 
-import static com.mt.config.ConfigurationKey.DATABASE_AUTOSAVE_GENERATED_KEYS;
+import static com.mt.config.ConfigurationKey.DATABASE_AUTOSAVE_GENERATED;
 import static com.mt.config.ConfigurationKey.DATABASE_PASSWORD;
 import static com.mt.config.ConfigurationKey.DATABASE_SCHEMA;
 import static com.mt.config.ConfigurationKey.DATABASE_TABLE_ADDRESS;
@@ -25,12 +25,16 @@ import java.util.List;
 import com.mt.config.ApplicationConfiguration;
 
 /**
+ * This class represents the database communication interface for Wallet
+ * objects.
  *
  * @author mkrajcovic
  */
-public class Database {
+public class Database implements AutoCloseable {
 
 	private Connection connection;
+	private boolean recover;
+
 	private final String url;
 	private final String usr;
 	private final String pwd;
@@ -49,9 +53,9 @@ public class Database {
 	public Database(ApplicationConfiguration config) {
 		requireNonNull(config);
 
-		url = requireNonNull(config.get(DATABASE_URL));
-		usr = requireNonNull(config.get(DATABASE_USER));
-		pwd = requireNonNull(config.get(DATABASE_PASSWORD));
+		url = requireNonNull(config.get(DATABASE_URL), "jdbc database URL configuration cannot be null");
+		usr = requireNonNull(config.get(DATABASE_USER), "database username configuration cannot be null");
+		pwd = requireNonNull(config.get(DATABASE_PASSWORD), "database password configuration cannot be null");
 
 		// this comes from the provided DDL script
 		schema = config.get(DATABASE_SCHEMA, "bitcoin");
@@ -59,7 +63,7 @@ public class Database {
 		addressField = config.get(DATABASE_TABLE_ADDRESS_FIELD, "s_address");
 		privateKeyField = config.get(DATABASE_TABLE_ADDRESS_PRIVATE_KEY_FIELD, "s_private_key");
 
-		isAutosaveGeneratedAllowed = Boolean.valueOf(config.get(DATABASE_AUTOSAVE_GENERATED_KEYS));
+		isAutosaveGeneratedAllowed = Boolean.valueOf(config.get(DATABASE_AUTOSAVE_GENERATED));
 		if (isAutosaveGeneratedAllowed) {
 			autosaveTable = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE));
 			autosaveAddressField = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE_ADDRESS_FIELD));
@@ -106,7 +110,7 @@ public class Database {
 
 	private Connection getConnection() {
 		try {
-			if (connection == null || connection.isClosed()) {
+			if (recover && (connection == null || connection.isClosed())) {
 				connection = DriverManager.getConnection(url, usr, pwd);
 				connection.setAutoCommit(true);
 			}
@@ -184,5 +188,21 @@ public class Database {
 			pstmt.addBatch();
 		}
 		pstmt.executeBatch();
+	}
+
+	/**
+	 * Definitely terminates the underlying connection making it unrecoverable for
+	 * further operations.
+	 */
+	@Override
+	public void close() {
+		recover = false;
+		try {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			}
+		} catch (SQLException sqle) {
+			// do nothing
+		}
 	}
 }
