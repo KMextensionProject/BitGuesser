@@ -14,9 +14,6 @@ import static com.mt.config.ConfigurationKey.DATABASE_USER;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -65,7 +62,6 @@ public class Database implements AutoCloseable {
 		recover = true;
 
 		url = requireNonNull(config.get(DATABASE_URL), "jdbc database URL configuration cannot be null");
-		validateJdbcUrl(url);
 		usr = requireNonNull(config.get(DATABASE_USER), "database username configuration cannot be null");
 		pwd = requireNonNull(config.get(DATABASE_PASSWORD), "database password configuration cannot be null");
 
@@ -80,22 +76,6 @@ public class Database implements AutoCloseable {
 			walletSaveTable = config.get(DATABASE_TABLE_SAVE_WALLET, "t_generated_address");
 			walletSaveAddressField = config.get(DATABASE_TABLE_SAVE_WALLET_ADDRESS_FIELD, addressField);
 			walletSavePrivateKeyField = config.get(DATABASE_TABLE_SAVE_WALLET_ADDRESS_PRIVATE_KEY_FIELD, privateKeyField);
-		}
-	}
-
-	// these methods do not belong here
-	private void validateJdbcUrl(String url) {
-		if (!(url.startsWith("jdbc:") /*&& isURLValid(url)*/)) {
-			throw new IllegalArgumentException("Incorrect jdbc URL");
-		}
-	}
-
-	private boolean isURLValid(String url) {
-		try {
-			new URL(url).toURI();
-			return true;
-		} catch (MalformedURLException | URISyntaxException e) {
-			return false;
 		}
 	}
 
