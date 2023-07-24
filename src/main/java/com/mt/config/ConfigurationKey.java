@@ -11,10 +11,10 @@ public enum ConfigurationKey implements ApplicationConfiguration.Key {
 	DATABASE_TABLE_ADDRESS_FIELD("db.table.address.addressField"),
 	DATABASE_TABLE_ADDRESS_PRIVATE_KEY_FIELD("db.table.address.privateKeyField"),
 
-	DATABASE_AUTOSAVE_GENERATED("db.autosaveGenerated"),
-	DATABASE_TABLE_AUTOSAVE("db.table.autosave"),
-	DATABASE_TABLE_AUTOSAVE_ADDRESS_FIELD("db.table.autosave.addressField"),
-	DATABASE_TABLE_AUTOSAVE_ADDRESS_PRIVATE_KEY_FIELD("db.table.autosave.privateKeyField"),
+	DATABASE_ENABLE_WALLET_SAVING("db.enableWalletSaving"),
+	DATABASE_TABLE_SAVE_WALLET("db.table.save_wallet"),
+	DATABASE_TABLE_SAVE_WALLET_ADDRESS_FIELD("db.table.save_wallet.addressField"),
+	DATABASE_TABLE_SAVE_WALLET_ADDRESS_PRIVATE_KEY_FIELD("db.table.save_wallet.privateKeyField"),
 
 	NOTIFICATION_RECIPIENT_EMAIL("notification.recipient.email"),
 	NOTIFICATION_RECIPIENT_PHONE("notification.recipient.phone"),

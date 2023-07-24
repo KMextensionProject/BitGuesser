@@ -1,19 +1,22 @@
 package com.mt.core;
 
-import static com.mt.config.ConfigurationKey.DATABASE_AUTOSAVE_GENERATED;
+import static com.mt.config.ConfigurationKey.DATABASE_ENABLE_WALLET_SAVING;
 import static com.mt.config.ConfigurationKey.DATABASE_PASSWORD;
 import static com.mt.config.ConfigurationKey.DATABASE_SCHEMA;
 import static com.mt.config.ConfigurationKey.DATABASE_TABLE_ADDRESS;
 import static com.mt.config.ConfigurationKey.DATABASE_TABLE_ADDRESS_FIELD;
 import static com.mt.config.ConfigurationKey.DATABASE_TABLE_ADDRESS_PRIVATE_KEY_FIELD;
-import static com.mt.config.ConfigurationKey.DATABASE_TABLE_AUTOSAVE;
-import static com.mt.config.ConfigurationKey.DATABASE_TABLE_AUTOSAVE_ADDRESS_FIELD;
-import static com.mt.config.ConfigurationKey.DATABASE_TABLE_AUTOSAVE_ADDRESS_PRIVATE_KEY_FIELD;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_SAVE_WALLET;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_SAVE_WALLET_ADDRESS_FIELD;
+import static com.mt.config.ConfigurationKey.DATABASE_TABLE_SAVE_WALLET_ADDRESS_PRIVATE_KEY_FIELD;
 import static com.mt.config.ConfigurationKey.DATABASE_URL;
 import static com.mt.config.ConfigurationKey.DATABASE_USER;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -38,31 +41,31 @@ import com.mt.config.ApplicationConfiguration;
  */
 public class Database implements AutoCloseable {
 
+	// database connection settings
 	private Connection connection;
 	private boolean recover;
-
 	private final String url;
 	private final String usr;
 	private final String pwd;
 
+	// main lookup table
 	private final String schema;
 	private final String table;
 	private final String addressField;
 	private final String privateKeyField;
 
-	// TODO: rename these and provide public method to do the insert?
-	// it would then do nothing if it was not set
-	// Pros of this solution is to clearly read it from bussiness code
-	private final boolean isAutosaveGeneratedAllowed;
-	private String autosaveTable;
-	private String autosaveAddressField;
-	private String autosavePrivateKeyField;
+	// side table for saving generated (searched) wallets
+	private final boolean isWalletSavingAllowed;
+	private String walletSaveTable;
+	private String walletSaveAddressField;
+	private String walletSavePrivateKeyField;
 
 	public Database(ApplicationConfiguration config) {
 		requireNonNull(config);
 		recover = true;
 
 		url = requireNonNull(config.get(DATABASE_URL), "jdbc database URL configuration cannot be null");
+		validateJdbcUrl(url);
 		usr = requireNonNull(config.get(DATABASE_USER), "database username configuration cannot be null");
 		pwd = requireNonNull(config.get(DATABASE_PASSWORD), "database password configuration cannot be null");
 
@@ -72,11 +75,27 @@ public class Database implements AutoCloseable {
 		addressField = config.get(DATABASE_TABLE_ADDRESS_FIELD, "s_address");
 		privateKeyField = config.get(DATABASE_TABLE_ADDRESS_PRIVATE_KEY_FIELD, "s_private_key");
 
-		isAutosaveGeneratedAllowed = Boolean.valueOf(config.get(DATABASE_AUTOSAVE_GENERATED));
-		if (isAutosaveGeneratedAllowed) {
-			autosaveTable = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE));
-			autosaveAddressField = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE_ADDRESS_FIELD));
-			autosavePrivateKeyField = requireNonNull(config.get(DATABASE_TABLE_AUTOSAVE_ADDRESS_PRIVATE_KEY_FIELD));
+		isWalletSavingAllowed = Boolean.valueOf(config.get(DATABASE_ENABLE_WALLET_SAVING));
+		if (isWalletSavingAllowed) {
+			walletSaveTable = config.get(DATABASE_TABLE_SAVE_WALLET, "t_generated_address");
+			walletSaveAddressField = config.get(DATABASE_TABLE_SAVE_WALLET_ADDRESS_FIELD, addressField);
+			walletSavePrivateKeyField = config.get(DATABASE_TABLE_SAVE_WALLET_ADDRESS_PRIVATE_KEY_FIELD, privateKeyField);
+		}
+	}
+
+	// these methods do not belong here
+	private void validateJdbcUrl(String url) {
+		if (!(url.startsWith("jdbc:") /*&& isURLValid(url)*/)) {
+			throw new IllegalArgumentException("Incorrect jdbc URL");
+		}
+	}
+
+	private boolean isURLValid(String url) {
+		try {
+			new URL(url).toURI();
+			return true;
+		} catch (MalformedURLException | URISyntaxException e) {
+			return false;
 		}
 	}
 
@@ -94,10 +113,6 @@ public class Database implements AutoCloseable {
 
 	/**
 	 * Queries the database for a match on provided wallet addresses.
-	 * <p>
-	 * If the automatic save of generated (searched) wallets is configured, this
-	 * method will perform this additional operation.
-	 * </p>
 	 *
 	 * @param wallets - to find a match for
 	 * @return list of wallets which the match was found for
@@ -112,11 +127,7 @@ public class Database implements AutoCloseable {
 			return retainMatchedWallets(wallets, foundAddresses);
 		} catch (SQLException sqle) {
 			throw new RuntimeException("Error calling " + query + " with params " + addresses, sqle);
-		} finally {
-			if (isAutosaveGeneratedAllowed) {
-				saveGenerated(wallets);
-			}
-		}
+		} 
 	}
 
 	// works only for compatible addresses which share the same set of address types
@@ -159,7 +170,19 @@ public class Database implements AutoCloseable {
 		.collect(toList());
 	}
 
-	private void saveGenerated(List<Wallet> wallets) {
+	/**
+	 * If the wallet saving is not configured, this method behaves as noop,
+	 * otherwise it will save all the addresses and corresponding private keys
+	 * to the configured side table which is supposed to reside within the same
+	 * schema as the main lookup table used for searching.
+	 *
+	 * @param wallets
+	 *            that should be saved to database
+	 */
+	public void saveWallets(List<Wallet> wallets) {
+		if (!isWalletSavingAllowed) {
+			return;
+		}
 		String insert = createParameterizedInsert(2);
 		System.out.println("Calling " + insert + " for " + wallets.size() + " wallets");
 
@@ -180,8 +203,8 @@ public class Database implements AutoCloseable {
 
 	private String createParameterizedInsert(int placeholders) {
 		// stick to the currently used schema
-		return "INSERT INTO " + schema + "." + autosaveTable 
-			+ "(" + autosaveAddressField + "," + autosavePrivateKeyField 
+		return "INSERT INTO " + schema + "." + walletSaveTable 
+			+ "(" + walletSaveAddressField + "," + walletSavePrivateKeyField 
 			+ ") VALUES (" + repeat("?", placeholders, ",") + ");";
 	}
 
@@ -261,6 +284,6 @@ public class Database implements AutoCloseable {
 	 * @return whether the automatic saving of generated wallets is set
 	 */
 	public boolean isAutosaveGeneratedAllowed() {
-		return isAutosaveGeneratedAllowed;
+		return isWalletSavingAllowed;
 	}
 }
