@@ -1,5 +1,7 @@
 package com.mt.notification;
 
+import static java.util.Objects.isNull;
+
 public class Recipient {
 
 	private String name;
@@ -44,11 +46,11 @@ public class Recipient {
 	}
 
 	public boolean isDefined() {
-		boolean emailPresent = (email != null && !email.equals("null"));
-		boolean phonePresent = (phoneNumber != null && !phoneNumber.equals("null"));
-		boolean otherAddressPresent = (other != null && !other.equals("null"));
+		boolean emailPresent = isNull(email);
+		boolean phonePresent = isNull(phoneNumber);
+		boolean otherAddressPresent = isNull(other);
 
-		return emailPresent || phonePresent || otherAddressPresent;
+		return emailPresent && phonePresent && otherAddressPresent;
 	}
 
 	@Override
