@@ -2,6 +2,7 @@ package com.mt.core;
 
 import static com.mt.core.AddressType.BECH32;
 import static com.mt.core.AddressType.P2PKH;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
-public class WalletTest {
+class WalletTest {
 
 	private Wallet wallet;
 
@@ -44,7 +45,7 @@ public class WalletTest {
 
 		assertTrue(nativeSegWitAddressLength == 42 || nativeSegWitAddressLength == 62);
 		assertTrue(legacyAddressLength >= 25 && legacyAddressLength <= 35);
-		assertTrue(privateLength == 64);
+		assertEquals(64, privateLength);
 		assertTrue(publicLength >= 68 && publicLength <= 130);
 	}
 
