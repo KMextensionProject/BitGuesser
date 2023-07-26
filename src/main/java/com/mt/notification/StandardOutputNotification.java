@@ -15,7 +15,7 @@ public class StandardOutputNotification implements Notification {
 	 */
 	@Override
 	public void sendNotification(Message message, Recipient recipient) throws IOException {
-		System.out.println("Console Notification: " + message.getSubject() + " - " + message.getBody());
+		System.out.println("Console Notification: " + message.getSubject() + " - " + message.getBody()); // NO-SONAR
 	}
 
 }

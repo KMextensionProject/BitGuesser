@@ -10,9 +10,12 @@ public class Launcher {
 
 	public static void main(String[] args) {
 
+		// if the predefined logic wrapped into this classe is not sufficient enough,
+		// one can easily use Wallet, Database and Notification classes to implemnt
+		// custom processing flow and logic
 		final BitGuesserService service = new BitGuesserService(loadConfig(args));
 
-		while (true) {
+		while (true) { // NO-SONAR this infinity loop is intented
 			List<Wallet> wallets = service.generateWallets(1000);
 			service.processWalletsAsync(wallets);
 		}
