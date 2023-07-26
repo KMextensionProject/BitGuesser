@@ -105,7 +105,7 @@ public final class Database implements AutoCloseable {
 	public List<Wallet> findAddresses(List<Wallet> wallets) {
 		List<String> addresses = extractAllAddresses(wallets);
 		String query = createParameterizedQuery(addresses.size());
-		LOG.info(keepFirst(100, query));
+		LOG.info(() -> keepFirst(100, query));
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(query)) {
 			List<String> foundAddresses = queryForAddresses(pstmt, addresses);
@@ -169,7 +169,7 @@ public final class Database implements AutoCloseable {
 			return;
 		}
 		String insert = createParameterizedInsert(2);
-		LOG.info(insert + " (" + wallets.size() + " wallets)");
+		LOG.info(() -> insert + " (" + wallets.size() + " wallets)");
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(insert)) {
 			// do this for all the address types?
