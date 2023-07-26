@@ -1,38 +1,20 @@
 package com.mt.main;
 
-import java.security.Security;
-import java.util.ArrayList;
 import java.util.List;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.mt.config.ApplicationConfiguration;
 import com.mt.config.PropertiesFileConfiguration;
-import com.mt.core.BitcoinWallet;
-import com.mt.core.Database;
 import com.mt.core.Wallet;
 
 public class Launcher {
 
-	static {
-		Security.addProvider(new BouncyCastleProvider());
-	}
-
 	public static void main(String[] args) {
-		ApplicationConfiguration config = loadConfig(args);
 
-		try (Database db = new Database(config)) {
+		final BitGuesserService service = new BitGuesserService(loadConfig(args));
 
-			List<Wallet> wallets = new ArrayList<>(10);
-			while (wallets.size() != 10) {
-				wallets.add(new BitcoinWallet());
-			}
-
-			List<Wallet> foundWallets = db.findAddresses(wallets);
-			wallets.forEach(System.out::println);
-			if (!foundWallets.isEmpty()) {
-				db.savePrivateKeys(foundWallets);
-			}
+		while (true) {
+			List<Wallet> wallets = service.generateWallets(1000);
+			service.processWalletsAsync(wallets);
 		}
 	}
 
@@ -43,4 +25,5 @@ public class Launcher {
 		}
 		return new PropertiesFileConfiguration(path);
 	}
+
 }

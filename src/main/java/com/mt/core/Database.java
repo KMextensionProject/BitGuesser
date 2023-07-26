@@ -36,7 +36,7 @@ import com.mt.config.ApplicationConfiguration;
  *
  * @author mkrajcovic
  */
-public class Database implements AutoCloseable {
+public final class Database implements AutoCloseable {
 
 	// database connection settings
 	private Connection connection;
