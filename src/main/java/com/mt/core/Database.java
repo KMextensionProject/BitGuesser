@@ -11,6 +11,8 @@ import static com.mt.config.ConfigurationKey.DATABASE_TABLE_SAVE_WALLET_ADDRESS_
 import static com.mt.config.ConfigurationKey.DATABASE_TABLE_SAVE_WALLET_ADDRESS_PRIVATE_KEY_FIELD;
 import static com.mt.config.ConfigurationKey.DATABASE_URL;
 import static com.mt.config.ConfigurationKey.DATABASE_USER;
+import static com.mt.utils.StringHelper.keepFirst;
+import static com.mt.utils.StringHelper.repeat;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
@@ -103,13 +105,13 @@ public final class Database implements AutoCloseable {
 	public List<Wallet> findAddresses(List<Wallet> wallets) {
 		List<String> addresses = extractAllAddresses(wallets);
 		String query = createParameterizedQuery(addresses.size());
-		LOG.info(() -> "Calling " + query);
+		LOG.info(keepFirst(100, query));
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(query)) {
 			List<String> foundAddresses = queryForAddresses(pstmt, addresses);
 			return retainMatchedWallets(wallets, foundAddresses);
 		} catch (SQLException sqle) {
-			throw new RuntimeException("Error calling " + query + " with params " + addresses, sqle);
+			throw new ApplicationFailure("Error calling " + query + " with params " + addresses, sqle);
 		} 
 	}
 
@@ -167,7 +169,7 @@ public final class Database implements AutoCloseable {
 			return;
 		}
 		String insert = createParameterizedInsert(2);
-		LOG.info(() -> "Calling " + insert + " for " + wallets.size() + " wallets");
+		LOG.info(insert + " (" + wallets.size() + " wallets)");
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(insert)) {
 			// do this for all the address types?
@@ -180,7 +182,7 @@ public final class Database implements AutoCloseable {
 			}
 			pstmt.executeBatch();
 		} catch (SQLException sqle) {
-			throw new RuntimeException(insert, sqle);
+			throw new ApplicationFailure(insert, sqle);
 		}
 	}
 
@@ -200,12 +202,12 @@ public final class Database implements AutoCloseable {
 	// TODO: return list of more readable errors for those records that fail to update ?
 	public void savePrivateKeys(List<Wallet> wallets) {
 		String update = createParameterizedUpdate(wallets.get(0).getSupportedAddressTypes().size());
-		LOG.info(() -> "Calling " + update);
+		LOG.info(update);
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(update)) {
 			insertPrivateKeysForAddresses(pstmt, wallets);
 		} catch (SQLException sqle) {
-			throw new RuntimeException("Error calling " + update + " for wallets: " + wallets);
+			throw new ApplicationFailure("Error calling " + update + " for wallets: " + wallets);
 		}
 	}
 
@@ -214,15 +216,6 @@ public final class Database implements AutoCloseable {
 			+ " SET " + privateKeyField + " = ? WHERE " 
 			+ addressField + " IN (" 
 			+ repeat("?", placeholders, ",") + ");";
-	}
-
-	// this method does not belong here
-	private String repeat(String what, int howMany, String delimiter) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < howMany; i++) {
-			sb.append(what).append(delimiter);
-		}
-		return sb.deleteCharAt(sb.length() - 1).toString();
 	}
 
 	private void insertPrivateKeysForAddresses(PreparedStatement pstmt, List<Wallet> wallets) throws SQLException {
@@ -251,7 +244,7 @@ public final class Database implements AutoCloseable {
 				connection.close();
 			}
 		} catch (SQLException sqle) {
-			// do nothing
+			LOG.warning("Error closing database connection: " + sqle);
 		}
 	}
 
