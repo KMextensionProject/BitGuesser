@@ -29,11 +29,12 @@ public class BitcoinWallet extends Wallet {
 //		case P2SH:
 		case BECH32:
 			try {
-				return bech32Address != null
-					? bech32Address
-					: (bech32Address = addressType.getGenerator().getAddress(publicKey));
+				if (bech32Address == null) {
+					bech32Address = addressType.getGenerator().getAddress(publicKey);
+				}
+				return bech32Address;
 			} catch (GeneralSecurityException gex) {
-				throw new RuntimeException(gex);
+				throw new ApplicationFailure("Error during address creation: " + gex);
 			}
 		default:
 			throw new IllegalArgumentException("Unsupported address type: " + addressType);
