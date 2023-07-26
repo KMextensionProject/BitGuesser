@@ -42,7 +42,7 @@ public abstract class Wallet {
 			} catch (InvalidKeyException invalidKeyError) {
 				// recreate on invalid key generation
 			} catch (GeneralSecurityException generalError) {
-				throw new RuntimeException(generalError);
+				throw new ApplicationFailure("Error during wallet creation: " + generalError);
 			}
 	}
 

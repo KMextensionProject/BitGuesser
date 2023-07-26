@@ -13,6 +13,8 @@ import java.util.List;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.util.encoders.Hex;
 
+import com.mt.core.ApplicationFailure;
+
 /**
  * This class is responsible for generating a valid Bitcoin Native Segregated
  * Witness wallet and provide access to all its keys even in a raw form directly
@@ -107,7 +109,7 @@ public final class BtcNativeSegWitAddressGenerator implements CryptoAddressGener
 			short b = (short) (value & 0xff);
 
 			if (b < 0 || (b >> fromBits) > 0) {
-				throw new RuntimeException("Invalid byte value: " + b);
+				throw new ApplicationFailure("Invalid byte value: " + b);
 			}
 
 			acc = (acc << fromBits) | b;
@@ -120,8 +122,8 @@ public final class BtcNativeSegWitAddressGenerator implements CryptoAddressGener
 
 		if (pad && (bits > 0)) {
 			ret.add((byte) ((acc << (toBits - bits)) & maxv));
-		} else if (bits >= fromBits || (byte) (((acc << (toBits - bits)) & maxv)) != 0) {
-			throw new RuntimeException("Error during bit conversion [bits=" + bits + ", return bytes=" + ret + "]");
+		} else if (bits >= fromBits || (byte) ((acc << (toBits - bits)) & maxv) != 0) {
+			throw new ApplicationFailure("Error during bit conversion [bits=" + bits + ", return bytes=" + ret + "]");
 		}
 
 		byte[] retArray = new byte[ret.size()];
