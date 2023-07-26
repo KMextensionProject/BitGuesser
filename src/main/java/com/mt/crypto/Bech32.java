@@ -36,7 +36,7 @@ public class Bech32 {
 		int chk = 1;
 		for (byte b : values) {
 			byte top = (byte) (chk >> 0x19);
-			chk = b ^ ((chk & 0x1ffffff) << 5);
+			chk = b & 0xFF ^ ((chk & 0x1ffffff) << 5); // altered by 
 			for (int i = 0; i < 5; i++) {
 				chk ^= ((top >> i) & 1) == 1 ? GENERATORS[i] : 0;
 			}
