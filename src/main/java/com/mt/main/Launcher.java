@@ -15,7 +15,7 @@ public class Launcher {
 		// custom processing flow and logic
 		final BitGuesserService service = new BitGuesserService(loadConfig(args));
 
-		while (true) { // NO-SONAR this infinity loop is intented
+		while (true) { // NOSONAR this infinity loop is intented
 			List<Wallet> wallets = service.generateWallets(1000);
 			service.processWalletsAsync(wallets);
 		}
