@@ -49,6 +49,10 @@ public class Base58 {
 		}
 	}
 
+	private Base58() {
+		throw new IllegalStateException("Base58 was not designed to be instantiated");
+	}
+
 	/**
 	 * Encodes the given bytes as a base58 string (no checksum is appended).
 	 *
@@ -72,7 +76,7 @@ public class Base58 {
 		for (int inputStart = zeros; inputStart < input.length;) {
 			encoded[--outputStart] = ALPHABET[divmod(input, inputStart, 256, 58)];
 			if (input[inputStart] == 0) {
-				++inputStart; // optimization - skip leading zeros
+				++inputStart; // NOSONAR optimization - skip leading zeros
 			}
 		}
 		// Preserve exactly as many leading encoded zeros in output as there were
@@ -106,7 +110,7 @@ public class Base58 {
 		// this is just long division which accounts for the base of the input digits
 		int remainder = 0;
 		for (int i = firstDigit; i < number.length; i++) {
-			int digit = (int) number[i] & 0xFF;
+			int digit = number[i] & 0xFF;
 			int temp = remainder * base + digit;
 			number[i] = (byte) (temp / divisor);
 			remainder = temp % divisor;

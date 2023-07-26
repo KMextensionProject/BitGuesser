@@ -6,6 +6,10 @@ package com.mt.utils;
  */
 public class StringHelper {
 
+	private StringHelper() {
+		throw new IllegalStateException("StringHelper was not designed to be instantiated");
+	}
+
 	/**
 	 *
 	 * @param what
