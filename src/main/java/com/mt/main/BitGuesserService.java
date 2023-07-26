@@ -4,18 +4,18 @@ import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_EMAIL;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_OTHER_CONTACT;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_PHONE;
 import static java.lang.Runtime.getRuntime;
+import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
 import java.security.Security;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -72,33 +72,42 @@ public class BitGuesserService {
 	}
 
 	private List<Notification> loadNotifications() {
-		return Collections.emptyList();
+		// TODO: implement reflective loading
+		return emptyList();
 	}
 
 	private void registerShutdownHook() {
 		getRuntime().addShutdownHook(new Thread(this::releaseResources));
 	}
 
-	// hidden as this object has no meaningful reason to exist without these resources
+	// 'private' as this object has no meaningful reason to exist without these resources
 	private void releaseResources() {
-		LOG.info(() -> "Shutting down the task executor");
-		try {
-			if (!isNull(taskProcessor)) {
-				taskProcessor.shutdown(); // do not accept any future tasks
-				while (true) {
-					if (taskProcessor.awaitTermination(5, TimeUnit.SECONDS)) {
-						LOG.info(() -> "All running tasks have been executed successfully");
+		terminateTaskExecutor();
+		terminateDatabaseConnection();
+
+		sendNotification(new Message("BitGuesser has been terminated"));
+	}
+
+	private void terminateTaskExecutor() {
+		LOG.info("Shutting down the task executor");
+		if (!isNull(taskProcessor)) {
+			taskProcessor.shutdown(); // do not accept any future tasks
+			while (true) {
+				try {
+					if (taskProcessor.awaitTermination(5, SECONDS)) {
+						LOG.info("All running tasks have been executed successfully");
 						break;
 					}
+				} catch (InterruptedException iex) { // NOSONAR cannot reinvoke task at this point + db must be closed later
+					LOG.warning("Thread performing final task has been interrupted: " + iex);
 				}
 			}
-			LOG.info(() -> "Closing database connection");
-			db.close();
-		} catch (InterruptedException iex) {
-			iex.printStackTrace();
-		} finally {
-			sendNotification(new Message("BitGuesser has been terminated"));
 		}
+	}
+
+	private void terminateDatabaseConnection() {
+		LOG.info("Closing database connection");
+		db.close();
 	}
 
 	/**
@@ -167,8 +176,8 @@ public class BitGuesserService {
 					notification.sendNotification(message, recipient);
 				}
 			} catch (IOException ioex) {
-				// do not exit the program by throwing an error
-				ioex.printStackTrace();
+				// do not exit the program
+				LOG.warning("Error during sending notification: " + ioex);
 			}
 		}
 	}
