@@ -1,6 +1,6 @@
 package com.mt.core;
 
-import static com.mt.core.AddressType.Bech32;
+import static com.mt.core.AddressType.BECH32;
 import static com.mt.core.AddressType.P2PKH;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,14 +30,14 @@ public class WalletTest {
 	void creationTest() {
 		assertNotNull(wallet, "wallet cannot be null");
 		assertNotNull(wallet.getAddress(P2PKH), "legacy address cannot be null");
-		assertNotNull(wallet.getAddress(Bech32), "native SegWit address cannot be null");
+		assertNotNull(wallet.getAddress(BECH32), "native SegWit address cannot be null");
 		assertNotNull(wallet.getPrivateKey(), "private key cannot be null");
 		assertNotNull(wallet.getPublicKey(), "public key cannot be null");
 	}
 
 	@Test
 	void integrityTest() {
-		int nativeSegWitAddressLength = wallet.getAddress(Bech32).length();
+		int nativeSegWitAddressLength = wallet.getAddress(BECH32).length();
 		int legacyAddressLength = wallet.getAddress().length();
 		int privateLength = wallet.getPrivateKey().length();
 		int publicLength = wallet.getPublicKey().length();
@@ -51,7 +51,7 @@ public class WalletTest {
 	@Test
 	void walletActivenessTest() {
 		assertTrue(isAddressValid(wallet.getAddress(P2PKH)));
-		assertTrue(isAddressValid(wallet.getAddress(Bech32)));
+		assertTrue(isAddressValid(wallet.getAddress(BECH32)));
 //		assertTrue(isAddressValid(wallet.getAddress(AddressType.P2SH)));
 	}
 
@@ -69,7 +69,7 @@ public class WalletTest {
 	void logValues() {
 		// neberem nic na lahku vahu :D
 		System.out.println("[DEBUG] legacy address: " + wallet.getAddress());
-		System.out.println("[DEBUG] bech32 address: " + wallet.getAddress(Bech32));
+		System.out.println("[DEBUG] bech32 address: " + wallet.getAddress(BECH32));
 		System.out.println("[DEBUG] private key: " + wallet.getPrivateKey());
 	}
 }

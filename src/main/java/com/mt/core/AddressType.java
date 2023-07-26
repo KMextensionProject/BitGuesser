@@ -19,7 +19,7 @@ public enum AddressType {
 	/**
 	 * Describes the Bitcoin Native SegWit address format starting with 'bc1'
 	 */
-	Bech32(BtcNativeSegWitAddressGenerator.getInstance());
+	BECH32(BtcNativeSegWitAddressGenerator.getInstance());
 
 	private CryptoAddressGenerator generator;
 
