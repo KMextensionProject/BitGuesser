@@ -3,13 +3,17 @@ package com.mt.notification;
 import static java.lang.System.lineSeparator;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Logger.getLogger;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.logging.Logger;
 
 public class TelegramNotification implements Notification {
+
+	private static final Logger LOG = getLogger(TelegramNotification.class.getName());
 
 	@Override
 	public void sendNotification(Message message, Recipient recipient) {
@@ -49,7 +53,7 @@ public class TelegramNotification implements Notification {
 			httpRequest.disconnect();
 		} catch (IOException ioex) {
 			// quietly continue, no need to stop the application
-			ioex.printStackTrace();
+			LOG.warning("Error during sending telegram notification: " + ioex);
 		}
 	}
 
