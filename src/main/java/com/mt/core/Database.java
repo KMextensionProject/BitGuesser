@@ -21,6 +21,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.mt.config.ApplicationConfiguration;
 
@@ -37,6 +38,8 @@ import com.mt.config.ApplicationConfiguration;
  * @author mkrajcovic
  */
 public final class Database implements AutoCloseable {
+
+	private static final Logger LOG = Logger.getLogger(Database.class.getName());
 
 	// database connection settings
 	private Connection connection;
@@ -100,7 +103,7 @@ public final class Database implements AutoCloseable {
 	public List<Wallet> findAddresses(List<Wallet> wallets) {
 		List<String> addresses = extractAllAddresses(wallets);
 		String query = createParameterizedQuery(addresses.size());
-		System.out.println("Calling " + query);
+		LOG.info(() -> "Calling " + query);
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(query)) {
 			List<String> foundAddresses = queryForAddresses(pstmt, addresses);
@@ -164,7 +167,7 @@ public final class Database implements AutoCloseable {
 			return;
 		}
 		String insert = createParameterizedInsert(2);
-		System.out.println("Calling " + insert + " for " + wallets.size() + " wallets");
+		LOG.info(() -> "Calling " + insert + " for " + wallets.size() + " wallets");
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(insert)) {
 			// do this for all the address types?
@@ -197,7 +200,7 @@ public final class Database implements AutoCloseable {
 	// TODO: return list of more readable errors for those records that fail to update ?
 	public void savePrivateKeys(List<Wallet> wallets) {
 		String update = createParameterizedUpdate(wallets.get(0).getSupportedAddressTypes().size());
-		System.out.println("Calling " + update);
+		LOG.info(() -> "Calling " + update);
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(update)) {
 			insertPrivateKeysForAddresses(pstmt, wallets);

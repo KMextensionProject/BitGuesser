@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -36,14 +37,16 @@ import com.mt.notification.Recipient;
  * {@link com.mt.config.ApplicationConfiguration} object.
  *
  * <p>
- * By itself, this class manages all the necessary resources needed during the
- * whole life of the application. These resources are released automatically
- * before termination as part of the JVM shutdown hook.
+ * <b>If used</b>, this class manages all the necessary resources needed during
+ * the whole life of the application. These resources are released automatically
+ * just before program termination as part of the JVM shutdown hook.
  * </p>
  *
  * @author mkrajcovic
  */
 public class BitGuesserService {
+
+	private static final Logger LOG = Logger.getLogger(BitGuesserService.class.getName());
 
 	static {
 		Security.addProvider(new BouncyCastleProvider());
@@ -76,19 +79,20 @@ public class BitGuesserService {
 		getRuntime().addShutdownHook(new Thread(this::releaseResources));
 	}
 
+	// hidden as this object has no meaningful reason to exist without these resources
 	private void releaseResources() {
-		System.out.println("Shutting down the task executor");
+		LOG.info(() -> "Shutting down the task executor");
 		try {
 			if (!isNull(taskProcessor)) {
 				taskProcessor.shutdown(); // do not accept any future tasks
 				while (true) {
 					if (taskProcessor.awaitTermination(5, TimeUnit.SECONDS)) {
-						System.out.println("All running tasks have been executed successfully");
+						LOG.info(() -> "All running tasks have been executed successfully");
 						break;
 					}
 				}
 			}
-			System.out.println("Closing database connection");
+			LOG.info(() -> "Closing database connection");
 			db.close();
 		} catch (InterruptedException iex) {
 			iex.printStackTrace();
