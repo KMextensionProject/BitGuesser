@@ -42,7 +42,31 @@ public class StringHelper {
 	 * @return
 	 */
 	public static String keepFirst(int howMany, String toCut) {
+		if (toCut == null || toCut.isEmpty() || howMany > toCut.length()) {
+			return toCut;
+		}
+		if (howMany < 0) {
+			throw new IllegalArgumentException("Cannot pass in a negative number");
+		}
 		return toCut.substring(0, howMany) + (toCut.length() > howMany ? "..." : "");
 	}
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
