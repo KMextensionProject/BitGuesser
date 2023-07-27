@@ -149,13 +149,12 @@ public final class Database implements AutoCloseable {
 		LOG.info(() -> insert + " (" + wallets.size() + " wallets)");
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(insert)) {
-			// do this for all the address types?
-			// if so, make it configurable to choose between all address types
-			// or just the base one
 			for (Wallet wallet : wallets) {
-				pstmt.setString(1, wallet.getAddress());
-				pstmt.setString(2, wallet.getPrivateKey());
-				pstmt.addBatch();
+				for (AddressType type : wallet.getSupportedAddressTypes()) {
+					pstmt.setString(1, wallet.getAddress(type));
+					pstmt.setString(2, wallet.getPrivateKey());
+					pstmt.addBatch();
+				}
 			}
 			pstmt.executeBatch();
 		} catch (SQLException sqle) {
