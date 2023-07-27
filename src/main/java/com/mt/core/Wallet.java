@@ -81,8 +81,8 @@ public abstract class Wallet {
 	public boolean equals(Object other) {
 		if (other instanceof Wallet) {
 			Wallet otherWallet = (Wallet) other;
-			return publicKey.equals(otherWallet.publicKey)
-				&& privateKey.equals(otherWallet.privateKey);
+			return Objects.equals(publicKey, otherWallet.publicKey)
+				&& Objects.equals(privateKey, otherWallet.privateKey);
 		}
 		return false;
 	}

@@ -6,6 +6,7 @@ import static java.util.Collections.unmodifiableSet;
 
 import java.security.GeneralSecurityException;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class BitcoinWallet extends Wallet {
@@ -52,7 +53,7 @@ public class BitcoinWallet extends Wallet {
 			return false;
 		}
 		if (other instanceof BitcoinWallet) {
-			return bech32Address.equals(((BitcoinWallet) other).getAddress(BECH32));
+			return Objects.equals(bech32Address, ((BitcoinWallet)other).getAddress(BECH32));
 		}
 		return false;
 	}
