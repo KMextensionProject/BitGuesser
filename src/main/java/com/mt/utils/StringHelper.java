@@ -18,11 +18,21 @@ public class StringHelper {
 	 * @return
 	 */
 	public static String repeat(String what, int howMany, String delimiter) {
+		if (what == null || what.isEmpty()) {
+			return what;
+		}
+		if (howMany < 0) {
+			throw new IllegalArgumentException("Cannot pass in a negative number");
+		}
+		boolean hasDelimiter = delimiter != null && !delimiter.isEmpty(); 
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < howMany; i++) {
-			sb.append(what).append(delimiter);
+			sb.append(what);
+			if (hasDelimiter) {
+				sb.append(delimiter);
+			}
 		}
-		return sb.deleteCharAt(sb.length() - 1).toString();
+		return hasDelimiter ? sb.deleteCharAt(sb.length() - 1).toString() : sb.toString();
 	}
 
 	/**
