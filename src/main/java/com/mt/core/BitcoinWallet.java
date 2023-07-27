@@ -47,6 +47,17 @@ public class BitcoinWallet extends Wallet {
 	}
 
 	@Override
+	public boolean equals(Object other) {
+		if (!super.equals(other)) {
+			return false;
+		}
+		if (other instanceof BitcoinWallet) {
+			return bech32Address.equals(((BitcoinWallet) other).getAddress(BECH32));
+		}
+		return false;
+	}
+
+	@Override
 	public String toString() {
 		return "BitcoinWallet [bech32Address=" + bech32Address 
 			+ ", privateKey=" + privateKey
