@@ -14,7 +14,6 @@ import static com.mt.config.ConfigurationKey.DATABASE_USER;
 import static com.mt.utils.StringHelper.keepFirst;
 import static com.mt.utils.StringHelper.repeat;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -102,29 +101,15 @@ public final class Database implements AutoCloseable {
 	 * @param wallets - to find a match for
 	 * @return list of wallets which the match was found for
 	 */
-	public List<Wallet> findAddresses(List<Wallet> wallets) {
-		List<String> addresses = extractAllAddresses(wallets);
-		String query = createParameterizedQuery(addresses.size());
+	public List<String> findAddresses(List<String> searchedAddresses) {
+		String query = createParameterizedQuery(searchedAddresses.size());
 		LOG.info(() -> keepFirst(100, query));
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(query)) {
-			List<String> foundAddresses = queryForAddresses(pstmt, addresses);
-			return retainMatchedWallets(wallets, foundAddresses);
+			return queryForAddresses(pstmt, searchedAddresses);
 		} catch (SQLException sqle) {
-			throw new ApplicationFailure("Error calling " + query + " with params " + addresses, sqle);
-		} 
-	}
-
-	// works only for compatible addresses which share the same set of address types
-	// otherwise the variable length of placeholders would break prepared batches
-	private List<String> extractAllAddresses(List<Wallet> wallets) {
-		List<String> addresses = new ArrayList<>();
-		for (Wallet wallet : wallets) {
-			for (AddressType addressType : wallet.getSupportedAddressTypes()) {
-				addresses.add(wallet.getAddress(addressType));
-			}
+			throw new ApplicationFailure("Error calling " + query + " with params " + searchedAddresses, sqle);
 		}
-		return addresses;
 	}
 
 	private String createParameterizedQuery(int placeholders) {
@@ -145,14 +130,6 @@ public final class Database implements AutoCloseable {
 			foundAddresses.add(rs.getString(addressField));
 		}
 		return foundAddresses;
-	}
-
-	private List<Wallet> retainMatchedWallets(List<Wallet> wallets, List<String> addresses) {
-		return wallets.stream()
-		.filter(wallet -> wallet.getSupportedAddressTypes()
-			.stream()
-			.anyMatch(addType -> addresses.contains(wallet.getAddress(addType))))
-		.collect(toList());
 	}
 
 	/**

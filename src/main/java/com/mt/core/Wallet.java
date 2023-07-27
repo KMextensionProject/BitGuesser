@@ -71,6 +71,9 @@ public abstract class Wallet {
 	 */
 	public abstract Set<AddressType> getSupportedAddressTypes();
 
+	// TODO: hashCode() pub key
+	// TODO: equals() pub/priv keys
+
 	@Override
 	public String toString() {
 		return "Wallet [address=" + address

@@ -9,6 +9,7 @@ import static java.util.Objects.isNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.security.Security;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.mt.config.ApplicationConfiguration;
+import com.mt.core.AddressType;
 import com.mt.core.BitcoinWallet;
 import com.mt.core.Database;
 import com.mt.core.Wallet;
@@ -44,9 +46,9 @@ import com.mt.notification.Recipient;
  *
  * @author mkrajcovic
  */
-public class BitGuesserService {
+public class WalletService {
 
-	private static final Logger LOG = Logger.getLogger(BitGuesserService.class.getName());
+	private static final Logger LOG = Logger.getLogger(WalletService.class.getName());
 
 	static {
 		Security.addProvider(new BouncyCastleProvider());
@@ -57,7 +59,7 @@ public class BitGuesserService {
 	private List<Notification> notifications;
 	private Recipient recipient;
 
-	public BitGuesserService(ApplicationConfiguration config) {
+	public WalletService(ApplicationConfiguration config) {
 		db = new Database(config);
 		recipient = buildRecipient(config);
 		notifications = loadNotifications();
@@ -157,11 +159,33 @@ public class BitGuesserService {
 	public void processWallets(List<Wallet> wallets) {
 		db.saveWallets(wallets);
 
-		List<Wallet> foundWallets = db.findAddresses(wallets);
-		if (!foundWallets.isEmpty()) {
+		List<String> addresses = extractAllAddresses(wallets);
+		List<String> foundAddresses = db.findAddresses(addresses);
+		if (!foundAddresses.isEmpty()) {
+			List<Wallet> foundWallets = retainMatchedWallets(wallets, foundAddresses);
 			db.savePrivateKeys(foundWallets);
 			sendNotification(buildFoundNotificationMessage(foundWallets));
 		}
+	}
+
+	// works only for compatible addresses which share the same set of address types
+	// otherwise the variable length of placeholders would break prepared batches
+	private List<String> extractAllAddresses(List<Wallet> wallets) {
+		List<String> addresses = new ArrayList<>();
+		for (Wallet wallet : wallets) {
+			for (AddressType addressType : wallet.getSupportedAddressTypes()) {
+				addresses.add(wallet.getAddress(addressType));
+			}
+		}
+		return addresses;
+	}
+
+	private List<Wallet> retainMatchedWallets(List<Wallet> wallets, List<String> addresses) {
+		return wallets.stream()
+		.filter(wallet -> wallet.getSupportedAddressTypes()
+			.stream()
+			.anyMatch(addType -> addresses.contains(wallet.getAddress(addType))))
+		.collect(toList());
 	}
 
 	private Message buildFoundNotificationMessage(List<Wallet> foundWallets) {
