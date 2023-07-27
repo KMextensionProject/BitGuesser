@@ -3,6 +3,7 @@ package com.mt.core;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.util.Objects;
 import java.util.Set;
 
 import com.mt.crypto.CryptoAddressGenerator;
@@ -71,8 +72,20 @@ public abstract class Wallet {
 	 */
 	public abstract Set<AddressType> getSupportedAddressTypes();
 
-	// TODO: hashCode() pub key
-	// TODO: equals() pub/priv keys
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(publicKey);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof Wallet) {
+			Wallet otherWallet = (Wallet) other;
+			return publicKey.equals(otherWallet.publicKey)
+				&& privateKey.equals(otherWallet.privateKey);
+		}
+		return false;
+	}
 
 	@Override
 	public String toString() {
