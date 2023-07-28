@@ -3,8 +3,8 @@ package com.mt.main;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_EMAIL;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_OTHER_CONTACT;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_PHONE;
+import static com.mt.utils.NotificationLoader.loadRegisteredNotifications;
 import static java.lang.Runtime.getRuntime;
-import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -62,7 +62,7 @@ public class WalletService {
 	public WalletService(ApplicationConfiguration config) {
 		db = new Database(config);
 		recipient = buildRecipient(config);
-		notifications = loadNotifications();
+		notifications = loadRegisteredNotifications();
 		registerShutdownHook();
 	}
 
@@ -71,11 +71,6 @@ public class WalletService {
 			.withEmail(config.get(NOTIFICATION_RECIPIENT_EMAIL))
 			.withPhoneNumber(config.get(NOTIFICATION_RECIPIENT_PHONE))
 			.withOtherAddress(config.get(NOTIFICATION_RECIPIENT_OTHER_CONTACT));
-	}
-
-	private List<Notification> loadNotifications() {
-		// TODO: implement reflective loading
-		return emptyList();
 	}
 
 	private void registerShutdownHook() {

@@ -3,7 +3,8 @@ package com.mt.notification;
 import java.io.IOException;
 
 /**
- * Default Notification implementation.
+ * This class is automatically loaded by NotificationLoader when no other
+ * Notification implementations are carrying the {@link Registered} marker.
  *
  * @author mkrajcovic
  *
