@@ -3,7 +3,7 @@ package com.mt.main;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_EMAIL;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_OTHER_CONTACT;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_PHONE;
-import static com.mt.utils.NotificationLoader.loadRegisteredNotifications;
+import static com.mt.notification.NotificationLoader.loadRegisteredNotifications;
 import static java.lang.Runtime.getRuntime;
 import static java.util.Objects.isNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
@@ -63,6 +63,7 @@ public class WalletService {
 		db = new Database(config);
 		recipient = buildRecipient(config);
 		notifications = loadRegisteredNotifications();
+
 		registerShutdownHook();
 	}
 

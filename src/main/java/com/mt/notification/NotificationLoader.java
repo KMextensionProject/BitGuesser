@@ -1,4 +1,4 @@
-package com.mt.utils;
+package com.mt.notification;
 
 import static java.lang.ClassLoader.getSystemClassLoader;
 import static java.util.Arrays.stream;
@@ -11,17 +11,17 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import com.mt.core.ApplicationFailure;
-import com.mt.notification.Notification;
-import com.mt.notification.Registered;
-import com.mt.notification.StandardOutputNotification;
 
 /**
  * 
  * @author mkrajcovic
  */
 public class NotificationLoader {
+
+	private static final Logger LOG = Logger.getLogger(NotificationLoader.class.getName());
 
 	private NotificationLoader() {
 		throw new IllegalStateException("NotificationLoader was not designed to be instantiated");
@@ -42,6 +42,7 @@ public class NotificationLoader {
 	public static List<Notification> loadRegisteredNotifications(String packageName) {
 		List<String> classNames = loadClassNames(packageName);
 		Set<Class<?>> registeredClasses = findRegisteredNotificationImplementors(packageName, classNames);
+		LOG.info(() -> "Found active notifications for: " + registeredClasses.stream().map(Class::getSimpleName).collect(toList()));
 
 		List<Notification> notifications = registeredClasses.stream()
 			.map(c -> newInstance(c))
