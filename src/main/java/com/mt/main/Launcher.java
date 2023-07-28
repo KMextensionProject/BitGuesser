@@ -15,8 +15,9 @@ public class Launcher {
 		// custom processing flow and logic
 		final WalletService service = new WalletService(loadConfig(args));
 
+		List<Wallet> wallets;
 		while (true) { // NOSONAR this infinity loop is intented
-			List<Wallet> wallets = service.generateWallets(1000);
+			wallets = service.generateWallets(1000);
 			service.processWalletsAsync(wallets);
 		}
 	}
