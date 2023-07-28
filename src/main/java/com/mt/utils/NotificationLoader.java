@@ -41,7 +41,7 @@ public class NotificationLoader {
 	 */
 	public static List<Notification> loadRegisteredNotifications(String packageName) {
 		List<String> classNames = loadClassNames(packageName);
-		Set<Class<?>> registeredClasses = getRegisteredNotificationImplementors(packageName, classNames);
+		Set<Class<?>> registeredClasses = findRegisteredNotificationImplementors(packageName, classNames);
 
 		List<Notification> notifications = registeredClasses.stream()
 			.map(c -> newInstance(c))
@@ -65,7 +65,7 @@ public class NotificationLoader {
 		}
 	}
 
-	private static Set<Class<?>> getRegisteredNotificationImplementors(String packageName, List<String> classNames) {
+	private static Set<Class<?>> findRegisteredNotificationImplementors(String packageName, List<String> classNames) {
 		return classNames.stream()
 			.map(cn -> getClass(cn, packageName))
 			.filter(Objects::nonNull)
