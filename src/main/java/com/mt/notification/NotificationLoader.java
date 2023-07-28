@@ -2,11 +2,13 @@ package com.mt.notification;
 
 import static java.lang.ClassLoader.getSystemClassLoader;
 import static java.util.Arrays.stream;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Objects;
@@ -40,6 +42,8 @@ public class NotificationLoader {
 	 * @return
 	 */
 	public static List<Notification> loadRegisteredNotifications(String packageName) {
+		requireNonNull(packageName, "Package name cannot be null");
+
 		List<String> classNames = loadClassNames(packageName);
 		Set<Class<?>> registeredClasses = findRegisteredNotificationImplementors(packageName, classNames);
 		LOG.info(() -> "Found active notifications for: " + registeredClasses.stream().map(Class::getSimpleName).collect(toList()));
@@ -57,13 +61,20 @@ public class NotificationLoader {
 
 	// TODO: test / optionally refactor this to support packages from any dependent or wrapper projects
 	private static List<String> loadClassNames(String packageName) {
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(getSystemClassLoader().getResourceAsStream(packageName.replace('.', '/'))))) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(loadPackageResource(packageName)))) {
 			return reader.lines()
 				.filter(line -> line.endsWith(".class"))
 				.collect(toList());
 		} catch (IOException ioex) {
 			throw new ApplicationFailure("Unable to read class files for notifications");
 		}
+	}
+
+	private static InputStream loadPackageResource(String packageName) {
+		InputStream resourceStream = getSystemClassLoader().getResourceAsStream(packageName.replace('.', '/'));
+		// if not null it will be closed automatically by the BufferedReader wrapper
+		requireNonNull(resourceStream, "No such package - " + packageName);
+		return resourceStream;
 	}
 
 	private static Set<Class<?>> findRegisteredNotificationImplementors(String packageName, List<String> classNames) {
