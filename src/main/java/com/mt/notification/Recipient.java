@@ -50,11 +50,14 @@ public class Recipient {
 		boolean phonePresent = isNull(phoneNumber);
 		boolean otherAddressPresent = isNull(other);
 
-		return emailPresent && phonePresent && otherAddressPresent;
+		return emailPresent || phonePresent || otherAddressPresent;
 	}
 
 	@Override
 	public String toString() {
-		return "name: " + this.name + ", email: " + this.email + ", phone: " + this.phoneNumber;
+		return "name: " + this.name
+			+ ", email: " + this.email
+			+ ", phone: " + this.phoneNumber
+			+ ", other contact: " + this.other;
 	}
 }
