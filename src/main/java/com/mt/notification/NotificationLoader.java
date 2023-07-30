@@ -53,6 +53,7 @@ public class NotificationLoader {
 			.collect(toList());
 
 		if (notifications.isEmpty()) {
+			LOG.info("Registering default notifications for standard output");
 			notifications.add(newInstance(StandardOutputNotification.class));
 		}
 
