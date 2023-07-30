@@ -87,8 +87,8 @@ public class WalletService {
 	}
 
 	private void terminateTaskExecutor() {
-		LOG.info("Shutting down the task executor");
 		if (!isNull(taskProcessor)) {
+			LOG.info("Shutting down the task executor");
 			taskProcessor.shutdown(); // do not accept any future tasks
 			while (true) {
 				try {
@@ -143,7 +143,7 @@ public class WalletService {
 	/**
 	 * Queries the database for a match on provided wallet addresses. If there
 	 * is a match, then the private keys will be saved to corresponding
-	 * addresses along with notifying the client to all defined
+	 * addresses along with notifying the client to all registered
 	 * {@link com.mt.notification.Notification} implementations.
 	 * <p>
 	 * All the wallets passed into this method will be saved to database if
