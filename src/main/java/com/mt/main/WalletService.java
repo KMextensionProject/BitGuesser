@@ -29,6 +29,7 @@ import com.mt.core.Wallet;
 import com.mt.notification.Message;
 import com.mt.notification.Notification;
 import com.mt.notification.Recipient;
+import com.mt.utils.WalkingDeadLogger;
 
 /**
  * This class represents the main operational interface of this application.<br>
@@ -48,7 +49,7 @@ import com.mt.notification.Recipient;
  */
 public class WalletService {
 
-	private static final Logger LOG = Logger.getLogger(WalletService.class.getName());
+	private static final Logger LOG = new WalkingDeadLogger(WalletService.class);
 
 	static {
 		Security.addProvider(new BouncyCastleProvider());
@@ -88,7 +89,7 @@ public class WalletService {
 
 	private void terminateTaskExecutor() {
 		if (!isNull(taskProcessor)) {
-			LOG.info("Shutting down the task executor");
+			LOG.info("Shutting down the wallet task executor");
 			taskProcessor.shutdown(); // do not accept any future tasks
 			try {
 				while (true) {
