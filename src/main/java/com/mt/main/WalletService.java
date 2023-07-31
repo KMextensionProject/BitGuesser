@@ -90,15 +90,15 @@ public class WalletService {
 		if (!isNull(taskProcessor)) {
 			LOG.info("Shutting down the task executor");
 			taskProcessor.shutdown(); // do not accept any future tasks
-			while (true) {
-				try {
+			try {
+				while (true) {
 					if (taskProcessor.awaitTermination(5, SECONDS)) {
 						LOG.info("All running tasks have been executed successfully");
 						break;
 					}
-				} catch (InterruptedException iex) { // NOSONAR cannot reinvoke task at this point + db must be closed later
-					LOG.warning("Thread performing final task has been interrupted: " + iex);
 				}
+			} catch (InterruptedException iex) { // NOSONAR cannot reinvoke task at this point + db must be closed later
+				LOG.warning("Thread performing the final task has been interrupted: " + iex);
 			}
 		}
 	}
