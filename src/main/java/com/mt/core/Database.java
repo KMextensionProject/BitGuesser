@@ -175,7 +175,6 @@ public final class Database implements AutoCloseable {
 	 *
 	 * @param wallets - of which the private keys should be inserted
 	 */
-	// TODO: return list of more readable errors for those records that fail to update ?
 	public void savePrivateKeys(List<Wallet> wallets) {
 		String update = createParameterizedUpdate(wallets.get(0).getSupportedAddressTypes().size());
 		LOG.info(update);
