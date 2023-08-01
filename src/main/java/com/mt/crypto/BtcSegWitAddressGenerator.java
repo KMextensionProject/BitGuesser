@@ -1,8 +1,5 @@
 package com.mt.crypto;
 
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.util.Arrays;
 
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
@@ -12,41 +9,10 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
  *
  * @author mkrajcovic
  */
-public class BtcSegWitAddressGenerator implements CryptoAddressGenerator {
-
-	// kept for delegating on private and public key generation since these processes are same
-	private static CryptoAddressGenerator legacyGenerator = BtcLegacyAddressGenerator.getInstance();
-
-	private static final BtcSegWitAddressGenerator INSTANCE = new BtcSegWitAddressGenerator();
-
-	private BtcSegWitAddressGenerator() {
-		// intentionally empty
-	}
-
-	/**
-	 * @return the singleton instance of this class
-	 */
-	public static final BtcSegWitAddressGenerator getInstance() {
-		return INSTANCE;
-	}
+public final class BtcSegWitAddressGenerator extends BtcLegacyAddressGenerator {
 
 	@Override
-	public KeyPair generateAsymetricKeyPair() throws GeneralSecurityException {
-		return legacyGenerator.generateAsymetricKeyPair();
-	}
-
-	@Override
-	public String getPublicKey(KeyPair keyPair) throws InvalidKeyException {
-		return legacyGenerator.getPublicKey(keyPair);
-	}
-
-	@Override
-	public String getPrivateKey(KeyPair keyPair) throws InvalidKeyException {
-		return legacyGenerator.getPrivateKey(keyPair);
-	}
-
-	@Override
-	public String getAddress(String publicKey) throws GeneralSecurityException {
+	public String getAddress(String publicKey) {
 		return generateSegWitAddress(publicKey.getBytes());
 	}
 
