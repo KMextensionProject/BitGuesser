@@ -27,7 +27,7 @@ public class WalkingDeadLogger extends Logger {
 		// just walk
 	}
 
-	private static class WalkerConsoleHandler extends ConsoleHandler {
+	static class WalkerConsoleHandler extends ConsoleHandler {
 		@Override
 		public void close() {
 			// just walk, baby
