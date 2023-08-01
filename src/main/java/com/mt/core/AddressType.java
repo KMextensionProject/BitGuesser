@@ -2,6 +2,7 @@ package com.mt.core;
 
 import com.mt.crypto.BtcLegacyAddressGenerator;
 import com.mt.crypto.BtcNativeSegWitAddressGenerator;
+import com.mt.crypto.BtcSegWitAddressGenerator;
 import com.mt.crypto.CryptoAddressGenerator;
 
 public enum AddressType {
@@ -14,7 +15,7 @@ public enum AddressType {
 	/**
 	 * Describes the Bitcoin SegWit address format starting with '3'
 	 */
-//	P2SH(new BtcSegWitAddressGenerator()),
+	P2SH(BtcSegWitAddressGenerator.getInstance()),
 
 	/**
 	 * Describes the Bitcoin Native SegWit address format starting with 'bc1'
