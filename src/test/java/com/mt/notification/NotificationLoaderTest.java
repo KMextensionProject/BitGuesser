@@ -8,10 +8,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-public class NotificationLoaderTest {
+class NotificationLoaderTest {
 
 	@Test
-	public void findRegisteredImplementators() {
+	void findRegisteredImplementators() {
 		List<Notification> notifications = loadRegisteredNotifications("com.mt.notification");
 
 		/*
