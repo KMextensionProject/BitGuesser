@@ -11,4 +11,9 @@ public class ApplicationFailure extends RuntimeException {
 	public ApplicationFailure(String message, Throwable cause) {
 		super(message, cause);
 	}
+
+	@Override
+	public String getMessage() {
+		return super.getMessage() + " Cause: " + getCause();
+	}
 }
