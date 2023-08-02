@@ -22,9 +22,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.mt.config.ApplicationConfiguration;
+import com.mt.utils.WalkingDeadLogger;
 
 /**
  * This class represents a database communication interface for Wallet
@@ -40,7 +42,7 @@ import com.mt.config.ApplicationConfiguration;
  */
 public final class Database implements AutoCloseable {
 
-	private static final Logger LOG = Logger.getLogger(Database.class.getName());
+	private static final Logger LOG = new WalkingDeadLogger(Database.class);
 
 	// database connection settings
 	private Connection connection;
@@ -81,6 +83,9 @@ public final class Database implements AutoCloseable {
 			walletSaveAddressField = config.get(DATABASE_TABLE_SAVE_WALLET_ADDRESS_FIELD, addressField);
 			walletSavePrivateKeyField = config.get(DATABASE_TABLE_SAVE_WALLET_ADDRESS_PRIVATE_KEY_FIELD, privateKeyField);
 		}
+
+		// initialize and fail immediately if we cannot connect
+		getConnection();
 	}
 
 	private Connection getConnection() {
@@ -107,8 +112,8 @@ public final class Database implements AutoCloseable {
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(query)) {
 			return queryForAddresses(pstmt, searchedAddresses);
-		} catch (SQLException sqle) {
-			throw new ApplicationFailure("Error calling " + query + " with params " + searchedAddresses, sqle);
+		} catch (SQLException | IllegalStateException error) {
+			throw new ApplicationFailure("Error calling select: " + query + " with params " + searchedAddresses, error);
 		}
 	}
 
@@ -157,8 +162,8 @@ public final class Database implements AutoCloseable {
 				}
 			}
 			pstmt.executeBatch();
-		} catch (SQLException sqle) {
-			throw new ApplicationFailure(insert, sqle);
+		} catch (SQLException | IllegalStateException error) {
+			throw new ApplicationFailure("Error calling insert: " + insert, error);
 		}
 	}
 
@@ -181,8 +186,8 @@ public final class Database implements AutoCloseable {
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(update)) {
 			insertPrivateKeysForAddresses(pstmt, wallets);
-		} catch (SQLException sqle) {
-			throw new ApplicationFailure("Error calling " + update + " for wallets: " + wallets);
+		} catch (SQLException | IllegalStateException error) {
+			throw new ApplicationFailure("Error calling update: " + update + " for wallets: " + wallets, error);
 		}
 	}
 
@@ -236,5 +241,13 @@ public final class Database implements AutoCloseable {
 	 */
 	public boolean isAutosaveGeneratedAllowed() {
 		return isWalletSavingAllowed;
+	}
+
+	public static void disableLogging() {
+		LOG.setLevel(Level.OFF);
+	}
+
+	public static void enableLogging() {
+		LOG.setLevel(Level.INFO);
 	}
 }

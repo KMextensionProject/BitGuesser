@@ -4,18 +4,21 @@ import java.util.List;
 
 import com.mt.config.ApplicationConfiguration;
 import com.mt.config.PropertiesFileConfiguration;
+import com.mt.core.Database;
 import com.mt.core.Wallet;
 
 public class Launcher {
 
+	static {
+		System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] %4$s [%2$s] - %5$s%n");
+		Database.disableLogging();
+	}
+
 	public static void main(String[] args) {
 
-		// if the predefined logic wrapped into this classe is not sufficient enough,
-		// one can easily use Wallet, Database and Notification classes to implemnt
-		// custom processing flow and logic
 		final WalletService service = new WalletService(loadConfig(args));
-
 		List<Wallet> wallets;
+
 		while (true) { // NOSONAR this infinity loop is intented
 			wallets = service.generateWallets(1000);
 			service.processWalletsAsync(wallets);
@@ -29,5 +32,4 @@ public class Launcher {
 		}
 		return new PropertiesFileConfiguration(path);
 	}
-
 }
