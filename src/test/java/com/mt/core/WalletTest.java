@@ -73,10 +73,10 @@ class WalletTest {
 	@AfterAll
 	void logValues() {
 		// neberem nic na lahku vahu :D
-		System.out.println("[DEBUG] legacy address: " + wallet.getAddress());
-		System.out.println("[DEBUG] legacy address: " + wallet.getAddress(P2SH));
+		System.out.println("[DEBUG] p2pkh address: " + wallet.getAddress());
+		System.out.println("[DEBUG] p2sh address: " + wallet.getAddress(P2SH));
 		System.out.println("[DEBUG] bech32 address: " + wallet.getAddress(BECH32));
-		System.out.println("[DEBUG] private key: " + wallet.getPublicKey());
+		System.out.println("[DEBUG] public key: " + wallet.getPublicKey());
 		System.out.println("[DEBUG] private key: " + wallet.getPrivateKey());
 	}
 }
