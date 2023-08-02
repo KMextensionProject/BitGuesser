@@ -50,23 +50,4 @@ public class StringHelper {
 		}
 		return toCut.substring(0, howMany) + (toCut.length() > howMany ? "..." : "");
 	}
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }
