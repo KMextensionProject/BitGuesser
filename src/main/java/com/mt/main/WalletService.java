@@ -84,7 +84,7 @@ public class WalletService {
 		terminateTaskExecutor();
 		terminateDatabaseConnection();
 
-		sendNotification(new Message("BitGuesser has been terminated"));
+		sendNotification(new Message("BitGuesser", "Program has been terminated"));
 	}
 
 	private void terminateTaskExecutor() {
@@ -130,7 +130,16 @@ public class WalletService {
 	 * single-threaded task executor, so the {@link #generateWallets(int)} can
 	 * be used to generate continuously more wallets without blocking while
 	 * waiting on database operations to complete. <br>
-	 * See {@link #processWallets(List)} for more behavior details.
+	 *
+	 * <p>
+	 * This asynchronous process does not propagate errors and task executor
+	 * will not shutdown when the task execution fails. It's up to the caller to
+	 * handle failing executions through chaining on returned
+	 * {@link CompletableFuture}.
+	 * </p>
+	 * <p>
+	 * See {@link #processWallets(List)} for more behavior details on processing.
+	 * </p>
 	 *
 	 * @param wallets - to process
 	 */
