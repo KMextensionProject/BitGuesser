@@ -213,6 +213,24 @@ public final class Database implements AutoCloseable {
 	}
 
 	/**
+	 * @return the total count of generated addresses if the wallet saving is
+	 *         enabled, otherwise -1 is returned.
+	 */
+	public long countGeneratedAddresses() {
+		if (!isWalletSavingAllowed) {
+			return -1L;
+		}
+		String countStmt = "SELECT COUNT(*) FROM " + schema + "." + walletSaveTable;
+		LOG.info(countStmt);
+
+		try (PreparedStatement pstmt = getConnection().prepareStatement(countStmt)) {
+			return pstmt.executeQuery().getLong(1);
+		} catch (SQLException sqlex) {
+			throw new ApplicationFailure("Error calling: " + countStmt, sqlex);
+		}
+	}
+
+	/**
 	 * Definitely terminates the underlying connection making it unrecoverable for
 	 * further operations.
 	 */
