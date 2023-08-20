@@ -3,11 +3,13 @@ package com.mt.notification;
 import static java.util.Arrays.stream;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,23 +30,27 @@ import com.mt.core.ApplicationFailure;
  */
 public class NotificationLoader {
 
-	private static final Logger LOG = Logger.getLogger(NotificationLoader.class.getName());
+	private static final Logger LOG = getLogger(NotificationLoader.class.getName());
 
 	private NotificationLoader() {
 		throw new IllegalStateException("NotificationLoader was not designed to be instantiated");
 	}
 
-	/**
-	 * @return
-	 */
+	// TODO: do I need this method here? when broken into a separate module, there
+	// will always be a different package + think about more packages to scan
 	public static List<Notification> loadRegisteredNotifications() {
 		return loadRegisteredNotifications("com.mt.notification");
 	}
 
 	/**
+	 * Loads and instantiate every direct {@link Notification} implementor that
+	 * carries the {@link Registered} marker annotation.<br>
+	 * If no such implementor is found, the {@link StandardOutputNotification} is
+	 * loaded by default, otherwise omitted.
 	 *
-	 * @param packageName
-	 * @return
+	 * @param packageName - regular java package path where to load notification
+	 *                    classes from
+	 * @return list of notifications
 	 */
 	public static List<Notification> loadRegisteredNotifications(String packageName) {
 		requireNonNull(packageName, "Package name cannot be null");
@@ -115,7 +121,7 @@ public class NotificationLoader {
 			.map(cn -> getClass(cn, packageName))
 			.filter(Objects::nonNull)
 			.filter(c -> c.isAnnotationPresent(Registered.class))
-			.filter(c -> isNotificationSubclass(c))
+			.filter(c -> isNotificationSubclass(c)) // NOSONAR more readable than method ref.
 			.collect(toSet());
 	}
 
@@ -138,14 +144,19 @@ public class NotificationLoader {
 
 	private static List<Notification> instantiate(Collection<Class<?>> registeredClasses) {
 		return registeredClasses.stream()
-			.map(c -> newInstance(c))
+			.map(c -> newInstance(c)) // NOSONAR more readable than method ref.
+			.filter(Objects::nonNull)
 			.collect(toList());
 	}
 
 	private static Notification newInstance(Class<?> classObj) {
 		try {
-			return (Notification) classObj.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
+			return (Notification) classObj.getDeclaredConstructor().newInstance();
+		} catch (NoSuchMethodException |
+				 SecurityException |
+				 InstantiationException |
+				 InvocationTargetException |
+				 IllegalAccessException ex) {
 			return null;
 		}
 	}
