@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.mt.core.ApplicationFailure;
+
 class NotificationLoaderTest {
 
 	@Test
@@ -23,7 +25,7 @@ class NotificationLoaderTest {
 
 		// provide invalid packages
 		assertThrows(NullPointerException.class, () -> loadRegisteredNotifications(null));
-		assertThrows(NullPointerException.class, () -> loadRegisteredNotifications("unknown"));
+		assertThrows(ApplicationFailure.class, () -> loadRegisteredNotifications("unknown"));
 
 		/*
 		 * Let's use a valid package with no Notification class, which should
