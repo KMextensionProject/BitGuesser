@@ -65,6 +65,7 @@ class WalletTest {
 		try {
 			isValid = WalletValidator.isValid(address);
 		} catch (IOException ioex) {
+			System.out.println("invalidating test result: " + ioex.getMessage());
 			isValid = false;
 		}
 		return isValid;
