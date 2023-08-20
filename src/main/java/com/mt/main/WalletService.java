@@ -147,6 +147,7 @@ public class WalletService {
 		if (taskProcessor == null) {
 			taskProcessor = newFixedThreadPool(1);
 		}
+		// may throw java.util.concurrent.RejectedExecutionException
 		return runAsync(() -> processWallets(wallets), taskProcessor);
 	}
 
@@ -195,7 +196,6 @@ public class WalletService {
 	}
 
 	private Message buildFoundNotificationMessage(List<Wallet> foundWallets) {
-		// TODO: create proper message body
 		return new Message("BitGuesser - new wallets have been found", foundWallets.toString());
 	}
 
