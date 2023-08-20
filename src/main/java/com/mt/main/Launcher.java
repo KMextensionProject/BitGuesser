@@ -4,14 +4,12 @@ import java.util.List;
 
 import com.mt.config.ApplicationConfiguration;
 import com.mt.config.PropertiesFileConfiguration;
-import com.mt.core.Database;
 import com.mt.core.Wallet;
 
 public class Launcher {
 
 	static {
 		System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] %4$s [%2$s] - %5$s%n");
-		Database.disableLogging();
 	}
 
 	public static void main(String[] args) {

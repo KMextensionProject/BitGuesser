@@ -22,7 +22,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.mt.config.ApplicationConfiguration;
@@ -108,7 +107,7 @@ public final class Database implements AutoCloseable {
 	 */
 	public List<String> findAddresses(List<String> searchedAddresses) {
 		String query = createParameterizedQuery(searchedAddresses.size());
-		LOG.info(() -> keepFirst(100, query));
+		LOG.fine(() -> keepFirst(100, query));
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(query)) {
 			return queryForAddresses(pstmt, searchedAddresses);
@@ -151,7 +150,7 @@ public final class Database implements AutoCloseable {
 			return;
 		}
 		String insert = createParameterizedInsert(2);
-		LOG.info(() -> insert + " (" + wallets.size() + " wallets)");
+		LOG.fine(() -> insert + " (" + wallets.size() + " wallets)");
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(insert)) {
 			for (Wallet wallet : wallets) {
@@ -182,7 +181,7 @@ public final class Database implements AutoCloseable {
 	 */
 	public void savePrivateKeys(List<Wallet> wallets) {
 		String update = createParameterizedUpdate(wallets.get(0).getSupportedAddressTypes().size());
-		LOG.info(update);
+		LOG.fine(update);
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(update)) {
 			insertPrivateKeysForAddresses(pstmt, wallets);
@@ -221,7 +220,7 @@ public final class Database implements AutoCloseable {
 			return -1L;
 		}
 		String countStmt = "SELECT COUNT(*) FROM " + schema + "." + walletSaveTable;
-		LOG.info(countStmt);
+		LOG.fine(countStmt);
 
 		try (PreparedStatement pstmt = getConnection().prepareStatement(countStmt)) {
 			return pstmt.executeQuery().getLong(1);
@@ -259,13 +258,5 @@ public final class Database implements AutoCloseable {
 	 */
 	public boolean isAutosaveGeneratedAllowed() {
 		return isWalletSavingAllowed;
-	}
-
-	public static void disableLogging() {
-		LOG.setLevel(Level.OFF);
-	}
-
-	public static void enableLogging() {
-		LOG.setLevel(Level.INFO);
 	}
 }
