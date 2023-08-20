@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
 
-public class WalkingDeadLoggerTest {
+class WalkingDeadLoggerTest {
 
 	@Test
 	void stayAliveTest() {
