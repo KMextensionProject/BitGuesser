@@ -3,7 +3,7 @@ package com.mt.main;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_EMAIL;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_OTHER_CONTACT;
 import static com.mt.config.ConfigurationKey.NOTIFICATION_RECIPIENT_PHONE;
-import static com.mt.notification.NotificationLoader.loadRegisteredNotifications;
+import static io.github.kmextensionproject.notification.classloading.NotificationLoader.loadRegisteredNotifications;
 import static java.lang.Runtime.getRuntime;
 import static java.util.Objects.isNull;
 import static java.util.concurrent.CompletableFuture.runAsync;
@@ -12,24 +12,24 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
-import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import com.mt.config.ApplicationConfiguration;
 import com.mt.core.AddressType;
 import com.mt.core.BitcoinWallet;
 import com.mt.core.Database;
 import com.mt.core.Wallet;
-import com.mt.notification.Message;
-import com.mt.notification.Notification;
-import com.mt.notification.Recipient;
+import com.mt.notification.TelegramNotification;
 import com.mt.utils.WalkingDeadLogger;
+
+import io.github.kmextensionproject.notification.base.Message;
+import io.github.kmextensionproject.notification.base.Notification;
+import io.github.kmextensionproject.notification.base.Recipient;
+import io.github.kmextensionproject.notification.classloading.GlobalNotificationRegistry;
 
 /**
  * This class represents the main operational interface of this application.<br>
@@ -51,9 +51,9 @@ public class WalletService {
 
 	private static final Logger LOG = new WalkingDeadLogger(WalletService.class);
 
-	static {
-		Security.addProvider(new BouncyCastleProvider());
-	}
+//	static {
+//		Security.addProvider(new BouncyCastleProvider());
+//	}
 
 	private final Database db;
 	private ExecutorService taskProcessor; // prefer lazy init
@@ -63,6 +63,10 @@ public class WalletService {
 	public WalletService(ApplicationConfiguration config) {
 		db = new Database(config);
 		recipient = buildRecipient(config);
+
+		// until there is TelegramNotification module available under
+		// io.github.kmextensionproject.notification, use custom one
+		GlobalNotificationRegistry.getInstance().register(TelegramNotification.class);
 		notifications = loadRegisteredNotifications();
 
 		registerShutdownHook();
@@ -72,7 +76,7 @@ public class WalletService {
 		return new Recipient()
 			.withEmail(config.get(NOTIFICATION_RECIPIENT_EMAIL))
 			.withPhoneNumber(config.get(NOTIFICATION_RECIPIENT_PHONE))
-			.withOtherAddress(config.get(NOTIFICATION_RECIPIENT_OTHER_CONTACT));
+			.withCustomAddress(config.get(NOTIFICATION_RECIPIENT_OTHER_CONTACT));
 	}
 
 	private void registerShutdownHook() {

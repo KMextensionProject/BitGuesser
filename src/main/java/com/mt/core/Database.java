@@ -99,6 +99,7 @@ public final class Database implements AutoCloseable {
 		return connection;
 	}
 
+	// JPA: findAddressesIn()  ???
 	/**
 	 * Queries the database for a match on provided wallet addresses.
 	 *

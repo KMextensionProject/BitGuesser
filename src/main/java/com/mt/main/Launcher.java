@@ -1,6 +1,9 @@
 package com.mt.main;
 
+import java.security.Security;
 import java.util.List;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.mt.config.ApplicationConfiguration;
 import com.mt.config.PropertiesFileConfiguration;
@@ -10,6 +13,7 @@ public class Launcher {
 
 	static {
 		System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] %4$s [%2$s] - %5$s%n");
+		Security.addProvider(new BouncyCastleProvider());
 	}
 
 	public static void main(String[] args) {

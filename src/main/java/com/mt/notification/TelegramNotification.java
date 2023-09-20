@@ -11,6 +11,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.logging.Logger;
 
+import io.github.kmextensionproject.notification.base.Message;
+import io.github.kmextensionproject.notification.base.Notification;
+import io.github.kmextensionproject.notification.base.Recipient;
+
 public class TelegramNotification implements Notification {
 
 	private static final Logger LOG = getLogger(TelegramNotification.class.getName());
@@ -20,7 +24,7 @@ public class TelegramNotification implements Notification {
 		validateMessage(message);
 		validateRecipient(recipient);
 
-		String otherAddress = recipient.getOtherAddress();
+		String otherAddress = recipient.getCustomAddress();
 		String botId = otherAddress.substring(0, otherAddress.lastIndexOf(":")); 
 		String chatId = otherAddress.substring(otherAddress.lastIndexOf(":") + 1);
 		sendTelegramMessage(botId, chatId, formatMessage(message));
@@ -66,7 +70,7 @@ public class TelegramNotification implements Notification {
 
 	private static void validateRecipient(Recipient recipient) {
 		requireNonNull(recipient, "recipient cannot be null");
-		if (isNull(recipient.getOtherAddress())) {
+		if (isNull(recipient.getCustomAddress())) {
 			throw new IllegalArgumentException("recipient for telegram notification should be defined by the 'other address'");
 		}
 	}
